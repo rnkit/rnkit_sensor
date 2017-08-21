@@ -14,7 +14,8 @@
 		"babel-jest": "20.0.0",
 		"babel-preset-react-native": "1.9.1",
 		"jest": "20.0.0",
-		"react-test-renderer": "16.0.0-alpha.6"
+		"react-test-renderer": "16.0.0-alpha.6",
+		"rnkit_sensor": "../"
 	},
 	"jest": {
 		"preset": "react-native"
