@@ -17,7 +17,7 @@ public class DBJsModule extends ReactContextBaseJavaModule {
 
     @Override
     public String getName() {
-        return "SensorDatabase";
+        return "RNKitSENSOR";
     }
 
     @ReactMethod

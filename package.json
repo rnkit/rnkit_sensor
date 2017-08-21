@@ -1,26 +1,25 @@
 {
-  "name": "rnkit-excard",
-  "description": "易道博识-图像识别 for ReactNative",
+  "name": "rnkit-sensor",
+  "description": "埋点",
   "main": "lib/index.js",
-  "author": "SimMan <liwei0990@gmail.com>",
-  "version": "1.0.5",
+  "author": "carlos",
+  "version": "1.0.0",
   "scripts": {
     "test": "npm run test"
   },
-  "homepage": "https://github.com/rnkit/rnkit-excard",
-  "bugs": "https://github.com/rnkit/rnkit-excard/issues",
+  "homepage": "https://github.com/rnkit/rnkit_sensor",
+  "bugs": "https://github.com/rnkit/rnkit_sensor/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/rnkit/rnkit-excard"
+    "url": "https://github.com/rnkit/rnkit_sensor"
   },
   "keywords": [
     "react",
     "react-native",
     "react-component",
-    "excard",
+    "sensor",
     "rnkit",
-    "rnkit-excard",
-    "react-native-ocr"
+    "rnkit-sensor"
   ],
   "peerDependencies": {
     "react": ">=15.3.1",
