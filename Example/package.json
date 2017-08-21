@@ -8,14 +8,14 @@
 	},
 	"dependencies": {
 		"react": "16.0.0-alpha.6",
-		"react-native": "0.44.0"
+		"react-native": "0.44.0",
+		"rnkit_sensor": "../"
 	},
 	"devDependencies": {
 		"babel-jest": "20.0.0",
 		"babel-preset-react-native": "1.9.1",
 		"jest": "20.0.0",
-		"react-test-renderer": "16.0.0-alpha.6",
-		"rnkit_sensor": "../"
+		"react-test-renderer": "16.0.0-alpha.6"
 	},
 	"jest": {
 		"preset": "react-native"

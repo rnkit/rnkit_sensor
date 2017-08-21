@@ -17,7 +17,7 @@ public class DBJsModule extends ReactContextBaseJavaModule {
 
     @Override
     public String getName() {
-        return "RNKitSENSOR";
+        return "RNKitSensor";
     }
 
     @ReactMethod
@@ -27,6 +27,7 @@ public class DBJsModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void check(){
+        System.out.println("调到了");
         StaticUtil.singleThreadExecutor.execute(new HandleRunnable(getReactApplicationContext()));
     }
 }

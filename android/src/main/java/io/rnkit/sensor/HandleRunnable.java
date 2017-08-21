@@ -19,11 +19,13 @@ class HandleRunnable implements Runnable{
 
     @Override
     public void run() {
+        System.out.println("这里启动了");
         while (true){
             List<DBModel> dbModels = DBManager.getInstance(context).getUnSend();
             if(dbModels.size()>0){
                 for(DBModel dbModel:dbModels){
                     //这里发送给后台
+                    System.out.println(dbModel.jsonBody + "   " + dbModel.requestUrl);
                 }
             }else {
                 break;
