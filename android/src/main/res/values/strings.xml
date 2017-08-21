@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">rnkit_sensor</string>
+    <string name="action_settings">Settings</string>
+</resources>

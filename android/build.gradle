@@ -1,4 +1,3 @@
-
 buildscript {
     repositories {
         jcenter()
@@ -37,8 +36,5 @@ repositories {
 }
 
 dependencies {
-    compile project(':ExBankCardSDK')
-    compile project(':ExCardSDK')
     compile 'com.facebook.react:react-native:+'
 }
-  
