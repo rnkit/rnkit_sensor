@@ -32,7 +32,7 @@
 
 
 //修改数据(改)
--(void)updateWithID:(NSUInteger)mid status:(NSInteger)status times:(NSInteger)times;
+-(void)updateWithID:(NSInteger)mid status:(NSInteger)status times:(NSInteger)times;
 
 //批量更新
 - (void)batchUpdeate:(NSArray *)modelArray;

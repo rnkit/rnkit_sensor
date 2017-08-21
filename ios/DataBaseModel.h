@@ -10,7 +10,7 @@
 
 @interface DataBaseModel : NSObject
 
-@property (nonatomic, assign) NSUInteger mid; //表id
+@property (nonatomic, assign) NSInteger mid; //表id
 @property (nonatomic, copy) NSString *jsonBody; //json字符串
 @property (nonatomic, copy) NSString *requestUrl; //请求地址
 @property (nonatomic, assign) NSUInteger timeStamp; //存储进数据库的时间戳

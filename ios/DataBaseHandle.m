@@ -66,7 +66,7 @@ static sqlite3 *db = nil;
 #pragma mark 建表
 -(void)createTable {
     
-    NSString *sqlStr = @"CREATE TABLE IF NOT EXISTS RNKitSensor (mid BIGINT PRIMARY KEY  AUTOINCREMENT  NOT NULL , jsonBody TEXT,requestUrl VARCHAR(254), timeStamp BIGINT, times INTEGER,status INTEGER)";
+    NSString *sqlStr = @"CREATE TABLE IF NOT EXISTS RNKitSensor (mid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , jsonBody TEXT,requestUrl VARCHAR(254), timeStamp BIGINT, times INTEGER,status INTEGER)";
     
     int result = sqlite3_exec(db, sqlStr.UTF8String, NULL, NULL, NULL);
     if (result == SQLITE_OK) {
@@ -98,9 +98,9 @@ static sqlite3 *db = nil;
 
 
 #pragma mark  修改数据(改)
--(void)updateWithID:(NSUInteger)mid status:(NSInteger)status times:(NSInteger)times {
+-(void)updateWithID:(NSInteger)mid status:(NSInteger)status times:(NSInteger)times {
     
-    NSString *updateSql = [NSString stringWithFormat:@"UPDATE RNKitSensor SET status = '%ld', times = '%ld' WHERE mid = '%lu'",status,times,mid];
+    NSString *updateSql = [NSString stringWithFormat:@"UPDATE RNKitSensor SET status = '%ld', times = '%ld' WHERE mid = '%ld'",status,times,mid];
     
     int result = sqlite3_exec(db, updateSql.UTF8String, NULL, NULL, NULL);
     
@@ -120,7 +120,7 @@ static sqlite3 *db = nil;
     NSMutableString *str = [NSMutableString string];
     for (DataBaseModel *model in modelArray) {
         
-        [str appendFormat:@"(%lu,'%@','%@','%lu','%ld','%ld'),",(unsigned long)model.mid,model.jsonBody,model.requestUrl,(unsigned long)model.timeStamp,(long)model.times,(long)model.status];
+        [str appendFormat:@"(%ld,'%@','%@','%lu','%ld','%ld'),",(unsigned long)model.mid,model.jsonBody,model.requestUrl,(unsigned long)model.timeStamp,(long)model.times,(long)model.status];
     }
     //切记最后一个参数木有逗号
     str = ([str substringToIndex:str.length - 1]).mutableCopy;
@@ -188,7 +188,7 @@ static sqlite3 *db = nil;
         isAll ? NSLog(@"查询全部") : sqlite3_bind_int(stmt,1,(int)parameter);
         
         while (sqlite3_step(stmt) == SQLITE_ROW) {
-            NSUInteger mid = sqlite3_column_double(stmt, 0);
+            NSInteger mid = sqlite3_column_int(stmt, 0);
             NSString *jsonBody = [NSString stringWithUTF8String:(const char *) sqlite3_column_text(stmt, 1)];
             NSString *requestUrl = [NSString stringWithUTF8String:(const char *) sqlite3_column_text(stmt, 2)];
             NSUInteger timeStamp = sqlite3_column_double(stmt, 3);
