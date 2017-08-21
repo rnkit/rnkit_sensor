@@ -41,7 +41,7 @@ static dispatch_queue_t queue = nil;
 RCT_EXPORT_MODULE();
 
 
-RCT_EXPORT_METHOD(initializationDB)
+RCT_EXPORT_METHOD(initializationDB())
 {
     [self uploadWith:@"" requestUrl:@"" isInit:YES];
     RCTLogInfo(@"初始化");

@@ -11,6 +11,8 @@
 		807DE20F1F4A7C60001190A8 /* DataBaseModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 807DE2091F4A7C60001190A8 /* DataBaseModel.m */; };
 		807DE2101F4A7C60001190A8 /* DataBaseHandle.m in Sources */ = {isa = PBXBuildFile; fileRef = 807DE20B1F4A7C60001190A8 /* DataBaseHandle.m */; };
 		807DE2111F4A7C60001190A8 /* RNKitSensor.m in Sources */ = {isa = PBXBuildFile; fileRef = 807DE20D1F4A7C60001190A8 /* RNKitSensor.m */; };
+		807DE2541F4A8E90001190A8 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 807DE2531F4A8E90001190A8 /* libsqlite3.tbd */; };
+		807DE2561F4A8E9A001190A8 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 807DE2551F4A8E9A001190A8 /* SystemConfiguration.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -35,6 +37,8 @@
 		807DE20B1F4A7C60001190A8 /* DataBaseHandle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DataBaseHandle.m; sourceTree = "<group>"; };
 		807DE20C1F4A7C60001190A8 /* RNKitSensor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNKitSensor.h; sourceTree = "<group>"; };
 		807DE20D1F4A7C60001190A8 /* RNKitSensor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNKitSensor.m; sourceTree = "<group>"; };
+		807DE2531F4A8E90001190A8 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
+		807DE2551F4A8E9A001190A8 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -42,6 +46,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				807DE2561F4A8E9A001190A8 /* SystemConfiguration.framework in Frameworks */,
+				807DE2541F4A8E90001190A8 /* libsqlite3.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -60,6 +66,7 @@
 				807DE20C1F4A7C60001190A8 /* RNKitSensor.h */,
 				807DE20D1F4A7C60001190A8 /* RNKitSensor.m */,
 				807DE1FB1F4A7BF5001190A8 /* Products */,
+				807DE2521F4A8E90001190A8 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -69,6 +76,15 @@
 				807DE1FA1F4A7BF5001190A8 /* libRNKitSensor.a */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		807DE2521F4A8E90001190A8 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				807DE2551F4A8E9A001190A8 /* SystemConfiguration.framework */,
+				807DE2531F4A8E90001190A8 /* libsqlite3.tbd */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
