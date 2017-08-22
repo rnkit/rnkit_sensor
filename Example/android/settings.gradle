@@ -1,3 +1,5 @@
 rootProject.name = 'Example'
+include ':rnkit_sensor'
+project(':rnkit_sensor').projectDir = new File(rootProject.projectDir, '../node_modules/rnkit_sensor/android')
 
 include ':app'
