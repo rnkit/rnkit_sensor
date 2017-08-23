@@ -12,8 +12,11 @@ export default class App extends Component {
 
   
   render() {
-    // RNKitSensor.save("11111","222222");
-    RNKitSensor.check();
+
+      //RNKitSensor.initial('appkey',20);
+      //RNKitSensor.check();
+      //RNKitSensor.save("11111","222222",9);
+
     return (
         <Text>'666666666677'</Text>
     )
