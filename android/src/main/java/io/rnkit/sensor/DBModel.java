@@ -27,6 +27,10 @@ class DBModel {
      */
     public int status;
     /**
+     * 这个事件的优先级
+     */
+    public int priority;
+    /**
      * 向后台发送的次数
      */
     public int times;

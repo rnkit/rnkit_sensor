@@ -42,10 +42,11 @@ public class DBManager {
      * @param json       要存储的josn字符串
      * @param requestUrl 接口地址
      */
-    public void save(String json, String requestUrl) {
+    public void save(String json, String requestUrl, int priority) {
         database.beginTransaction();
         try {
-            String sql = "insert into " + DBHelper.TABLE_NAME + " (jsonBody,requestUrl,timeStamp,status,times) values ('" + json + "','" + requestUrl + "'," + System.currentTimeMillis() + ",0,0)";
+            String sql = "insert into " + DBHelper.TABLE_NAME + " (jsonBody,requestUrl,timeStamp,status,priority,times) values ('"
+                    + json + "','" + requestUrl + "'," + System.currentTimeMillis() + ",0," + priority + ",0)";
             database.execSQL(sql);
             database.setTransactionSuccessful();
         } catch (SQLException ignored) {
@@ -59,7 +60,7 @@ public class DBManager {
      * @return 返回需要发送到后台的数据，最大30条
      */
     public List<DBModel> getUnSend() {
-        String sql = "select * from " + DBHelper.TABLE_NAME + " where status=0 or status=2 limit 0,30";
+        String sql = "select * from " + DBHelper.TABLE_NAME + " where status=0 or status=2 order by priority limit 0," + StaticUtil.MAX_VOLUME;
         Cursor cursor = database.rawQuery(sql, new String[0]);
         List<DBModel> list = null;
         while (cursor.moveToNext()) {
@@ -71,6 +72,7 @@ public class DBManager {
             dbModel.status = cursor.getInt(cursor.getColumnIndex("status"));
             dbModel.times = cursor.getInt(cursor.getColumnIndex("times"));
             dbModel.timeStamp = cursor.getLong(cursor.getColumnIndex("timeStamp"));
+            dbModel.priority = cursor.getInt(cursor.getColumnIndex("priority"));
             list.add(dbModel);
         }
         cursor.close();
