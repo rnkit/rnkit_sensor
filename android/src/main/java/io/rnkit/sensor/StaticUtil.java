@@ -1,5 +1,9 @@
 package io.rnkit.sensor;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -19,6 +23,15 @@ import java.util.concurrent.Executors;
 class StaticUtil {
 
     static ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+
+    /**
+     * 一次从数据库中取的最大数量
+     */
+    static int MAX_VOLUME = 20;
+    /**
+     *  服务器分配的appKey
+     */
+    static String appKey = "";
 
     public static String sendPost(String url,  String hashString ) {
         //输入请求网络日志
@@ -84,5 +97,28 @@ class StaticUtil {
             }
         }
         return result;
+    }
+
+    /**
+     * 检测当的网络（WLAN、3G/2G）状态
+     * @param context Context
+     * @return true 表示网络可用
+     */
+    public static boolean isNetworkAvailable(Context context) {
+        ConnectivityManager connectivity = (ConnectivityManager) context
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivity != null) {
+            NetworkInfo info = connectivity.getActiveNetworkInfo();
+            if (info != null && info.isConnected())
+            {
+                // 当前网络是连接的
+                if (info.getState() == NetworkInfo.State.CONNECTED)
+                {
+                    // 当前所连接的网络可用
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

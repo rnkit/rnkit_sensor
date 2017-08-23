@@ -35,7 +35,8 @@ class DBHelper extends SQLiteOpenHelper{
                 + "requestUrl TEXT,"
                 + "timeStamp LONG,"
                 + "status INTEGER,"
-                + "times INTEGER,"
+                + "priority INTEGER,"
+                + "times INTEGER"
                 + ")";
         sqLiteDatabase.execSQL(sql);
     }
