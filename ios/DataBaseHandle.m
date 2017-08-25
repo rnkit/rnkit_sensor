@@ -175,7 +175,8 @@ static sqlite3 *db = nil;
 #pragma mark 条件查
 -(NSArray *)selectWithLimit:(NSInteger)limit {
     
-    NSString *selectSql = [NSString stringWithFormat:@"SELECT * FROM RNKitSensor WHERE status = 0 OR status = 2  ORDER BY priority LIMIT %ld",(long)limit];
+    NSInteger limitNum = limit ? limit : 20;
+    NSString *selectSql = [NSString stringWithFormat:@"SELECT * FROM RNKitSensor WHERE status = 0 OR status = 2  ORDER BY priority LIMIT %ld",(long)limitNum];
     
     return [self selectResults:selectSql];
     

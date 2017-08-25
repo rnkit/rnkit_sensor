@@ -21,6 +21,7 @@
 #import "DataBaseHandle.h"
 #import "DataBaseModel.h"
 #import "Reachability.h"
+#import "Utils.h"
 
 #define kIOS9 ([[[UIDevice currentDevice] systemVersion] doubleValue] >= 9.0)
 
@@ -31,10 +32,10 @@ static dispatch_queue_t queue = nil;
 
 @property (nonatomic, strong) NSMutableArray *modelArray;
 @property (nonatomic, strong) NSMutableArray *jsonArray;
-@property (nonatomic, assign) NSInteger maxVolume;//最大传送条数
-@property (nonatomic, copy) NSString *appkey;
 @property (nonatomic, assign) BOOL enterBackground;
 @property (nonatomic, assign) NSInteger maxUploadNum;//有网情况下,上传失败,最多重复上传三次
+
+@property (nonatomic, assign) int yy;
 
 @end
 
@@ -45,8 +46,9 @@ RCT_EXPORT_MODULE();
 
 RCT_EXPORT_METHOD(initial:(NSString *)appkey maxVolume:(NSInteger)maxVolume)
 {
-    self.maxVolume = maxVolume;
-    self.appkey = appkey;
+    [Utils setMaxVolume:maxVolume];
+    [Utils setAppkey:appkey];
+    NSLog(@"最大maxVolume:%ld,appkey:%@",(long)maxVolume,appkey);
     [self setupNotifications];
     RCTLogInfo(@"初始化");
 }
@@ -81,7 +83,8 @@ RCT_EXPORT_METHOD(check)
 
 - (void)upload {
     
-    if (!(self.maxVolume && [self isNullString:self.appkey])) {
+    NSLog(@"最大maxVolume:%ld,appkey:%@",[Utils getMaxVolume],[Utils getAppkey]);
+    if (!([Utils getMaxVolume] && [self isNullString:[Utils getAppkey]])) {
         NSLog(@"缺少上传最大量或者appkey值");
         return;
     }
@@ -103,9 +106,12 @@ RCT_EXPORT_METHOD(check)
     __weak typeof(self) weakSelf = self;
     
     dispatch_async(queue, ^{
+        NSLog(@"又开始了......");
+        
         while (true) {
-            NSLog(@"循环了......");
-            if (weakSelf.enterBackground) {
+            _yy++;
+            NSLog(@"yy的值:=====%d",_yy);
+            if (weakSelf.enterBackground || _yy > 10000) {
                 NSLog(@"停止了.....");
                 break;
             }
@@ -118,12 +124,12 @@ RCT_EXPORT_METHOD(check)
          }
          
          
-         if (((NSArray *)[[DataBaseHandle shareDataBase] selectWithLimit:weakSelf.maxVolume]).count > 0) {
+         if (((NSArray *)[[DataBaseHandle shareDataBase] selectWithLimit:[Utils getMaxVolume]]).count > 0) {
          
          weakSelf.modelArray = [NSMutableArray array];
          weakSelf.jsonArray = [NSMutableArray array];
          
-         for (DataBaseModel *model in [[DataBaseHandle shareDataBase] selectWithLimit:weakSelf.maxVolume]) {
+         for (DataBaseModel *model in [[DataBaseHandle shareDataBase] selectWithLimit:[Utils getMaxVolume]]) {
          model.times += 1;
          [weakSelf.modelArray addObject:model];
          [weakSelf.jsonArray addObject:model.jsonBody];
@@ -178,7 +184,7 @@ RCT_EXPORT_METHOD(check)
         [jsonStr appendFormat:@"%@,",jsonBody];
     }
     jsonStr = ([jsonStr substringToIndex:jsonStr.length - 1]).mutableCopy;
-    NSString *signatureString = [self getMD5:[NSString stringWithFormat:@"%@%@%lu",self.appkey,jsonStr,(unsigned long)timeStamp]];
+    NSString *signatureString = [self getMD5:[NSString stringWithFormat:@"%@%@%lu",[Utils getAppkey],jsonStr,(unsigned long)timeStamp]];
     
     NSString *requestUrl = ((DataBaseModel *)self.modelArray[0]).requestUrl;
     NSURL *url = [NSURL URLWithString:requestUrl];
@@ -284,7 +290,6 @@ RCT_EXPORT_METHOD(check)
 - (void)applicationWillEnterForeground:(NSNotification *)notification
 {
     self.enterBackground = NO;
-    NSLog(@"前台最大量%ld",(long)self.maxVolume);
     [self upload];
   
 }
