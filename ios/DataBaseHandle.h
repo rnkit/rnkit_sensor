@@ -50,7 +50,7 @@
 
 
 //2.条件查
--(NSArray *)selectWithStatus:(NSInteger)status;
+-(NSArray *)selectWithLimit:(NSInteger)limit;
 
 //重置id
 -(void)resetId;
