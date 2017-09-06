@@ -13,21 +13,20 @@ import java.util.List;
  * 数据库管理类
  */
 
-public class DBManager {
-    private DBHelper dbHelper;
+class DBManager {
     private SQLiteDatabase database;
 
     private static DBManager dbManager;
 
     private DBManager(Context context) {
-        dbHelper = new DBHelper(context);
+        DBHelper dbHelper = new DBHelper(context);
         database = dbHelper.getWritableDatabase();
     }
 
     /**
      * 单例
      */
-    public static DBManager getInstance(Context context) {
+    static DBManager getInstance(Context context) {
         if (dbManager == null) {
             synchronized (DBManager.class) {
                 dbManager = new DBManager(context);
@@ -42,7 +41,7 @@ public class DBManager {
      * @param json       要存储的josn字符串
      * @param requestUrl 接口地址
      */
-    public void save(String json, String requestUrl, int priority) {
+    void save(String json, String requestUrl, int priority) {
         database.beginTransaction();
         try {
             String sql = "insert into " + DBHelper.TABLE_NAME + " (jsonBody,requestUrl,timeStamp,status,priority,times) values ('"
@@ -59,7 +58,7 @@ public class DBManager {
     /**
      * @return 返回需要发送到后台的数据，最大30条
      */
-    public List<DBModel> getUnSend() {
+    List<DBModel> getUnSend() {
         String sql = "select * from " + DBHelper.TABLE_NAME + " where status=0 or status=2 order by priority limit 0," + StaticUtil.MAX_VOLUME;
         Cursor cursor = database.rawQuery(sql, new String[0]);
         List<DBModel> list = null;
@@ -87,15 +86,17 @@ public class DBManager {
      * @param status 新的状态
      * @param times  请求次数
      */
-    private void update(int id, int status, int times) {
+    void update(int id, int status, int times) {
         database.beginTransaction();
         try {
-            String sql = "update " + DBHelper.TABLE_NAME + " set status=" + status + " times=" + times + " where id = " + id;
+            String sql = "update " + DBHelper.TABLE_NAME + " set status=" + status + ",times=" + times + " where id = " + id;
+            System.out.println("执行的语句" + sql);
             database.execSQL(sql);
             database.setTransactionSuccessful();
         } catch (SQLException ignored) {
 
         } finally {
+            System.out.println("这里执行更新成功了啊");
             database.endTransaction();
         }
     }
@@ -105,7 +106,7 @@ public class DBManager {
      *
      * @param id 要删除的数据的表id
      */
-    private void delete(int id) {
+    void delete(int id) {
         database.beginTransaction();
         try {
             try {

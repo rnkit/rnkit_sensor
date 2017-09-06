@@ -3,21 +3,35 @@ package io.rnkit.sensor;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.telephony.TelephonyManager;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.zip.GZIPOutputStream;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * Created by carlos on 2017/8/17.
- *  网络请求方法
+ * 网络请求方法
  */
 
 class StaticUtil {
@@ -29,36 +43,39 @@ class StaticUtil {
      */
     static int MAX_VOLUME = 20;
     /**
-     *  服务器分配的appKey
+     * 服务器分配的appKey
      */
     static String appKey = "";
 
-    public static String sendPost(String url,  String hashString ) {
-        //输入请求网络日志
-        System.out.println("post_url="+url);
-        System.out.println("post_param="+hashString);
+    static int REPEAT_TIMES = 3;
 
+    static String deviceId = "";
+
+    static String sendPost(String url, String hashString, long timeStamp) {
+        //输入请求网络日志
+        System.out.println("post_url=" + url);
+        System.out.println("post_param=" + hashString);
+        String signString = getMD5(appKey + hashString + timeStamp);
         BufferedReader in = null;
         String result = "";
-        HttpURLConnection conn = null;
-
+        HttpsURLConnection conn = null;
         try {
             URL realUrl = new URL(url);
-            // 打开和URL之间的连接
-            conn = (HttpURLConnection) realUrl.openConnection();
-            // 设置通用的请求属性
+            conn = (HttpsURLConnection) realUrl.openConnection();
+            conn.setRequestMethod("POST");
             conn.setDoInput(true);
             conn.setDoOutput(true);
             conn.setUseCaches(false);
-            conn.setConnectTimeout(10000);//设置连接超时
-            conn.setReadTimeout(10000);//设置读取超时
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(10000);
             conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            //上传文件 content_type
-//          conn.setRequestProperty("Content-Type", "multipart/form-data; boudary= 89alskd&&&ajslkjdflkjalskjdlfja;lksdf");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("iscompress", "true");
+            conn.setRequestProperty("content-md5", signString);
+            conn.setRequestProperty("content-timestamp", String.valueOf(timeStamp));
             conn.connect();
             OutputStreamWriter osw = new OutputStreamWriter(conn.getOutputStream(), "utf-8");
-            osw.write(hashString);
+            osw.write(compress(hashString));
             osw.flush();
             osw.close();
             if (conn.getResponseCode() == 200) {
@@ -67,32 +84,26 @@ class StaticUtil {
                 while ((inputLine = in.readLine()) != null) {
                     result += inputLine;
                 }
-                System.out.println("post_result="+result);
+                System.out.println("post_result=" + result);
                 in.close();
             }
 
-        } catch (SocketTimeoutException e ) {
-            //连接超时、读取超时
+        } catch (SocketTimeoutException e) {
             e.printStackTrace();
             return "POST_Exception";
-        }catch (ProtocolException e){
+        } catch (ProtocolException e) {
             e.printStackTrace();
             return "POST_Exception";
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("发送 POST 请求出现异常！"+e.getMessage()+"//URL="+url);
-            e.printStackTrace();
             return "POST_Exception";
-        }
-        //使用finally块来关闭输出流、输入流
-        finally{
-            try{
+        } finally {
+            try {
                 if (conn != null) conn.disconnect();
-                if(in!=null){
+                if (in != null) {
                     in.close();
                 }
-            }
-            catch(IOException ex){
+            } catch (IOException ex) {
                 ex.printStackTrace();
             }
         }
@@ -100,20 +111,39 @@ class StaticUtil {
     }
 
     /**
+     * 信任所有SSL证书
+     */
+    static void allowAllSSL() {
+        try {
+            HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+                @Override
+                public boolean verify(String arg0, SSLSession arg1) {
+                    return true;
+                }
+
+            });
+            SSLContext sslcontext = SSLContext.getInstance("TLS");
+            sslcontext.init(null, new TrustManager[]{myX509TrustManager}, null);
+            HttpsURLConnection.setDefaultSSLSocketFactory(sslcontext.getSocketFactory());
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * 检测当的网络（WLAN、3G/2G）状态
+     *
      * @param context Context
      * @return true 表示网络可用
      */
-    public static boolean isNetworkAvailable(Context context) {
+    static boolean isNetworkAvailable(Context context) {
         ConnectivityManager connectivity = (ConnectivityManager) context
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
         if (connectivity != null) {
             NetworkInfo info = connectivity.getActiveNetworkInfo();
-            if (info != null && info.isConnected())
-            {
+            if (info != null && info.isConnected()) {
                 // 当前网络是连接的
-                if (info.getState() == NetworkInfo.State.CONNECTED)
-                {
+                if (info.getState() == NetworkInfo.State.CONNECTED) {
                     // 当前所连接的网络可用
                     return true;
                 }
@@ -121,4 +151,80 @@ class StaticUtil {
         }
         return false;
     }
+
+    private static String getMD5(String message) {
+        String md5str = "";
+        try {
+            // 1 创建一个提供信息摘要算法的对象，初始化为md5算法对象
+            MessageDigest md = MessageDigest.getInstance("MD5");
+
+            // 2 将消息变成byte数组
+            byte[] input = message.getBytes();
+
+            // 3 计算后获得字节数组,这就是那128位了
+            byte[] buff = md.digest(input);
+
+            // 4 把数组每一字节（一个字节占八位）换成16进制连成md5字符串
+            md5str = bytesToHex(buff);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return md5str;
+    }
+
+    /**
+     * 二进制转十六进制
+     */
+    private static String bytesToHex(byte[] bytes) {
+        StringBuilder md5str = new StringBuilder();
+        // 把数组每一字节换成16进制连成md5字符串
+        int digital;
+        for (byte aByte : bytes) {
+            digital = aByte;
+
+            if (digital < 0) {
+                digital += 256;
+            }
+            if (digital < 16) {
+                md5str.append("0");
+            }
+            md5str.append(Integer.toHexString(digital));
+        }
+        return md5str.toString().toUpperCase();
+    }
+
+    private static String compress(String str) throws IOException {
+        if (str == null || str.length() == 0) {
+            return str;
+        }
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        GZIPOutputStream gzip = new GZIPOutputStream(out);
+        gzip.write(str.getBytes());
+        gzip.close();
+        return out.toString();
+    }
+
+    static String getDeviceId(Context context) {
+        TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        return tm.getDeviceId();
+    }
+
+    private static TrustManager myX509TrustManager = new X509TrustManager() {
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            return null;
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType)
+                throws CertificateException {
+        }
+
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType)
+                throws CertificateException {
+        }
+    };
 }

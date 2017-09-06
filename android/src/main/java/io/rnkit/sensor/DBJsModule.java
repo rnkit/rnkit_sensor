@@ -22,9 +22,10 @@ public class DBJsModule extends ReactContextBaseJavaModule {
 
     /**
      * 存储到本地数据库
-     * @param jsonBody 埋点数据
+     *
+     * @param jsonBody   埋点数据
      * @param requestUrl 请求的Url
-     * @param priority 这条埋点数据的url
+     * @param priority   这条埋点数据的url
      */
     @ReactMethod
     public void save(String jsonBody, String requestUrl, int priority) {
@@ -43,12 +44,23 @@ public class DBJsModule extends ReactContextBaseJavaModule {
 
     /**
      * 初始化
-     * @param appKey 服务器分配的appKey
-     * @param maxVolume 一次最大上传的埋点条数
+     *
+     * @param appKey      服务器分配的appKey
+     * @param maxVolume   一次最大上传的埋点条数
+     * @param repeatTimes 最大尝试次数
      */
     @ReactMethod
-    public void initial(String appKey,int maxVolume){
+    public void initial(String appKey, int maxVolume, int repeatTimes) {
         StaticUtil.appKey = appKey;
         StaticUtil.MAX_VOLUME = maxVolume;
+        StaticUtil.REPEAT_TIMES = repeatTimes;
+        StaticUtil.deviceId = StaticUtil.getDeviceId(getReactApplicationContext());
+        if (StaticUtil.deviceId == null)
+            StaticUtil.deviceId = "";
+    }
+
+    @Override
+    public boolean canOverrideExistingModule() {
+        return true;
     }
 }
