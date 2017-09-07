@@ -1,8 +1,17 @@
 package io.rnkit.sensor;
 
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.WritableArray;
+
+import java.util.List;
 
 /**
  * Created by carlos on 2017/8/17.
@@ -62,5 +71,18 @@ public class DBJsModule extends ReactContextBaseJavaModule {
     @Override
     public boolean canOverrideExistingModule() {
         return true;
+    }
+
+    @ReactMethod
+    public void getAppList(Promise promise) {
+        PackageManager pm = getReactApplicationContext().getPackageManager();
+        List<PackageInfo> packages = pm.getInstalledPackages(0);
+        WritableArray writableArray = Arguments.createArray();
+        for (PackageInfo packageInfo : packages) {
+            if ((packageInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0){
+                writableArray.pushString(pm.getApplicationLabel(packageInfo.applicationInfo).toString());
+            }
+        }
+        promise.resolve(writableArray);
     }
 }

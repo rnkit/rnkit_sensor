@@ -46,6 +46,7 @@ class HandleRunnable implements Runnable {
                         long timeStamp = System.currentTimeMillis();
                         jsonObject.put("timestamp", timeStamp);
                         jsonObject.put("distinct_id", StaticUtil.deviceId);
+                        jsonObject.put("bizType","B005");
                         JSONArray jsonArray = new JSONArray();
                         jsonArray.put(new JSONObject(dbModel.jsonBody));
                         jsonObject.put("events", jsonArray);
