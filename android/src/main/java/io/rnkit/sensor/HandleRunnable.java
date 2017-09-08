@@ -27,7 +27,13 @@ class HandleRunnable implements Runnable {
     @Override
     public void run() {
         StaticUtil.allowAllSSL();
+        //一次最多循环5次
+        int loopTimes = 0;
         while (true) {
+            if (loopTimes > 4) {
+                break;
+            }
+            loopTimes++;
             //如果没有初始化，就终止循环
             if (StaticUtil.appKey.equals("")) {
                 break;
@@ -39,7 +45,7 @@ class HandleRunnable implements Runnable {
             List<DBModel> dbModels = DBManager.getInstance(context).getUnSend();
             if (dbModels.size() > 0) {
                 for (DBModel dbModel : dbModels) {
-                    if (dbModel.times > StaticUtil.REPEAT_TIMES) {
+                    if (dbModel.times > StaticUtil.REPEAT_TIMES && dbModel.priority > 0) {
                         DBManager.getInstance(context).delete(dbModel.id);
                         int failTimes = sharedPreferences.getInt(StaticUtil.KEY_FAIL_TIMES, 0);
                         sharedPreferences.edit().putInt(StaticUtil.KEY_FAIL_TIMES, ++failTimes).apply();

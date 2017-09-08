@@ -22,7 +22,7 @@ import java.util.List;
 
 public class DBJsModule extends ReactContextBaseJavaModule {
 
-    SharedPreferences sharedPreferences;
+    private SharedPreferences sharedPreferences;
 
     public DBJsModule(ReactApplicationContext reactContext) {
         super(reactContext);
