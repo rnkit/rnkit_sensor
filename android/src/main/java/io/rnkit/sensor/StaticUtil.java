@@ -52,6 +52,8 @@ class StaticUtil {
 
     static String deviceId = "";
 
+    static final String KEY_FAIL_TIMES = "failTimes";
+
     static String sendPost(String url, String hashString, long timeStamp) {
         //输入请求网络日志
         System.out.println("post_url=" + url);

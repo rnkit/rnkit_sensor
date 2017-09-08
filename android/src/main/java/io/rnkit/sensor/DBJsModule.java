@@ -1,5 +1,7 @@
 package io.rnkit.sensor;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -19,6 +21,8 @@ import java.util.List;
  */
 
 public class DBJsModule extends ReactContextBaseJavaModule {
+
+    SharedPreferences sharedPreferences;
 
     public DBJsModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -79,10 +83,35 @@ public class DBJsModule extends ReactContextBaseJavaModule {
         List<PackageInfo> packages = pm.getInstalledPackages(0);
         WritableArray writableArray = Arguments.createArray();
         for (PackageInfo packageInfo : packages) {
-            if ((packageInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0){
+            if ((packageInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {
                 writableArray.pushString(pm.getApplicationLabel(packageInfo.applicationInfo).toString());
             }
         }
-        promise.resolve(writableArray);
+        if (writableArray.size() <= 0) {
+            promise.reject("安装列表为空", "安装列表为空");
+        } else {
+            promise.resolve(writableArray);
+        }
+    }
+
+    @ReactMethod
+    public void saveValue(String key, int value) {
+        if (sharedPreferences == null) {
+            sharedPreferences = getReactApplicationContext().getSharedPreferences(this.getClass().getName(), Context.MODE_PRIVATE);
+        }
+        sharedPreferences.edit().putInt(key, value).apply();
+    }
+
+    @ReactMethod
+    public void getValue(String key, Promise promise) {
+        if (sharedPreferences == null) {
+            sharedPreferences = getReactApplicationContext().getSharedPreferences(this.getClass().getName(), Context.MODE_PRIVATE);
+        }
+        int i = sharedPreferences.getInt(key, 0);
+        if (i == 0) {
+            promise.resolve(0);
+        } else {
+            promise.reject("没有这个值", "没有这个值");
+        }
     }
 }

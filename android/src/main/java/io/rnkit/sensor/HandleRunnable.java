@@ -1,6 +1,7 @@
 package io.rnkit.sensor;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -16,9 +17,11 @@ import java.util.List;
 class HandleRunnable implements Runnable {
 
     private Context context;
+    private SharedPreferences sharedPreferences;
 
     HandleRunnable(Context context) {
         this.context = context;
+        sharedPreferences = context.getSharedPreferences(DBJsModule.class.getName(), Context.MODE_PRIVATE);
     }
 
     @Override
@@ -38,6 +41,8 @@ class HandleRunnable implements Runnable {
                 for (DBModel dbModel : dbModels) {
                     if (dbModel.times > StaticUtil.REPEAT_TIMES) {
                         DBManager.getInstance(context).delete(dbModel.id);
+                        int failTimes = sharedPreferences.getInt(StaticUtil.KEY_FAIL_TIMES, 0);
+                        sharedPreferences.edit().putInt(StaticUtil.KEY_FAIL_TIMES, ++failTimes).apply();
                         continue;
                     }
                     //这里发送给后台
@@ -46,7 +51,7 @@ class HandleRunnable implements Runnable {
                         long timeStamp = System.currentTimeMillis();
                         jsonObject.put("timestamp", timeStamp);
                         jsonObject.put("distinct_id", StaticUtil.deviceId);
-                        jsonObject.put("bizType","B005");
+                        jsonObject.put("bizType", "B005");
                         JSONArray jsonArray = new JSONArray();
                         jsonArray.put(new JSONObject(dbModel.jsonBody));
                         jsonObject.put("events", jsonArray);
