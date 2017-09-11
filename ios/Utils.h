@@ -7,13 +7,14 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 
 @interface Utils : NSObject
 
-+ (void)setMaxVolume:(NSInteger)maxVolume;
-+ (NSInteger)getMaxVolume;
+- (void)initial:(NSString *)appkey maxVolume:(NSInteger)maxVolume repeatTimes:(NSInteger)repeatTimes;
 
-+ (void)setAppkey:(NSString *)appkey;
-+ (NSString *)getAppkey;
+- (void)insertToDB:(NSString *)jsonBody requestUrl:(NSString *)requestUrl priorityLevel:(NSInteger)level;
+
+- (void)upload;
 
 @end

@@ -7,11 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		807DE20E1F4A7C60001190A8 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = 807DE2071F4A7C60001190A8 /* Reachability.m */; };
-		807DE20F1F4A7C60001190A8 /* DataBaseModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 807DE2091F4A7C60001190A8 /* DataBaseModel.m */; };
-		807DE2101F4A7C60001190A8 /* DataBaseHandle.m in Sources */ = {isa = PBXBuildFile; fileRef = 807DE20B1F4A7C60001190A8 /* DataBaseHandle.m */; };
-		809378391F5002BA005B7AD0 /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = 809378381F5002BA005B7AD0 /* Utils.m */; };
-		8093783B1F500541005B7AD0 /* RNKitSensor.m in Sources */ = {isa = PBXBuildFile; fileRef = 8093783A1F500541005B7AD0 /* RNKitSensor.m */; };
+		807227A41F663B3E00C106E4 /* LFCGzipUtillity.m in Sources */ = {isa = PBXBuildFile; fileRef = 807227991F663B3E00C106E4 /* LFCGzipUtillity.m */; };
+		807227A51F663B3E00C106E4 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = 8072279B1F663B3E00C106E4 /* Reachability.m */; };
+		807227A61F663B3E00C106E4 /* DataBaseModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 8072279D1F663B3E00C106E4 /* DataBaseModel.m */; };
+		807227A71F663B3E00C106E4 /* DataBaseHandle.m in Sources */ = {isa = PBXBuildFile; fileRef = 8072279F1F663B3E00C106E4 /* DataBaseHandle.m */; };
+		807227A81F663B3E00C106E4 /* RNKitSensor.m in Sources */ = {isa = PBXBuildFile; fileRef = 807227A11F663B3E00C106E4 /* RNKitSensor.m */; };
+		807227A91F663B3E00C106E4 /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = 807227A31F663B3E00C106E4 /* Utils.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -27,17 +28,19 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		807227981F663B3E00C106E4 /* LFCGzipUtillity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LFCGzipUtillity.h; sourceTree = "<group>"; };
+		807227991F663B3E00C106E4 /* LFCGzipUtillity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LFCGzipUtillity.m; sourceTree = "<group>"; };
+		8072279A1F663B3E00C106E4 /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
+		8072279B1F663B3E00C106E4 /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
+		8072279C1F663B3E00C106E4 /* DataBaseModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataBaseModel.h; sourceTree = "<group>"; };
+		8072279D1F663B3E00C106E4 /* DataBaseModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DataBaseModel.m; sourceTree = "<group>"; };
+		8072279E1F663B3E00C106E4 /* DataBaseHandle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataBaseHandle.h; sourceTree = "<group>"; };
+		8072279F1F663B3E00C106E4 /* DataBaseHandle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DataBaseHandle.m; sourceTree = "<group>"; };
+		807227A01F663B3E00C106E4 /* RNKitSensor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNKitSensor.h; sourceTree = "<group>"; };
+		807227A11F663B3E00C106E4 /* RNKitSensor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNKitSensor.m; sourceTree = "<group>"; };
+		807227A21F663B3E00C106E4 /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utils.h; sourceTree = "<group>"; };
+		807227A31F663B3E00C106E4 /* Utils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Utils.m; sourceTree = "<group>"; };
 		807DE1FA1F4A7BF5001190A8 /* libRNKitSensor.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRNKitSensor.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		807DE2061F4A7C60001190A8 /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
-		807DE2071F4A7C60001190A8 /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
-		807DE2081F4A7C60001190A8 /* DataBaseModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataBaseModel.h; sourceTree = "<group>"; };
-		807DE2091F4A7C60001190A8 /* DataBaseModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DataBaseModel.m; sourceTree = "<group>"; };
-		807DE20A1F4A7C60001190A8 /* DataBaseHandle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataBaseHandle.h; sourceTree = "<group>"; };
-		807DE20B1F4A7C60001190A8 /* DataBaseHandle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DataBaseHandle.m; sourceTree = "<group>"; };
-		807DE20C1F4A7C60001190A8 /* RNKitSensor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNKitSensor.h; sourceTree = "<group>"; };
-		809378371F5002BA005B7AD0 /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utils.h; sourceTree = "<group>"; };
-		809378381F5002BA005B7AD0 /* Utils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Utils.m; sourceTree = "<group>"; };
-		8093783A1F500541005B7AD0 /* RNKitSensor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNKitSensor.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,16 +57,18 @@
 		807DE1F11F4A7BF5001190A8 = {
 			isa = PBXGroup;
 			children = (
-				807DE2061F4A7C60001190A8 /* Reachability.h */,
-				807DE2071F4A7C60001190A8 /* Reachability.m */,
-				807DE2081F4A7C60001190A8 /* DataBaseModel.h */,
-				807DE2091F4A7C60001190A8 /* DataBaseModel.m */,
-				807DE20A1F4A7C60001190A8 /* DataBaseHandle.h */,
-				807DE20B1F4A7C60001190A8 /* DataBaseHandle.m */,
-				807DE20C1F4A7C60001190A8 /* RNKitSensor.h */,
-				8093783A1F500541005B7AD0 /* RNKitSensor.m */,
-				809378371F5002BA005B7AD0 /* Utils.h */,
-				809378381F5002BA005B7AD0 /* Utils.m */,
+				807227981F663B3E00C106E4 /* LFCGzipUtillity.h */,
+				807227991F663B3E00C106E4 /* LFCGzipUtillity.m */,
+				8072279A1F663B3E00C106E4 /* Reachability.h */,
+				8072279B1F663B3E00C106E4 /* Reachability.m */,
+				8072279C1F663B3E00C106E4 /* DataBaseModel.h */,
+				8072279D1F663B3E00C106E4 /* DataBaseModel.m */,
+				8072279E1F663B3E00C106E4 /* DataBaseHandle.h */,
+				8072279F1F663B3E00C106E4 /* DataBaseHandle.m */,
+				807227A01F663B3E00C106E4 /* RNKitSensor.h */,
+				807227A11F663B3E00C106E4 /* RNKitSensor.m */,
+				807227A21F663B3E00C106E4 /* Utils.h */,
+				807227A31F663B3E00C106E4 /* Utils.m */,
 				807DE1FB1F4A7BF5001190A8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -133,11 +138,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				807DE2101F4A7C60001190A8 /* DataBaseHandle.m in Sources */,
-				8093783B1F500541005B7AD0 /* RNKitSensor.m in Sources */,
-				807DE20F1F4A7C60001190A8 /* DataBaseModel.m in Sources */,
-				809378391F5002BA005B7AD0 /* Utils.m in Sources */,
-				807DE20E1F4A7C60001190A8 /* Reachability.m in Sources */,
+				807227A71F663B3E00C106E4 /* DataBaseHandle.m in Sources */,
+				807227A81F663B3E00C106E4 /* RNKitSensor.m in Sources */,
+				807227A51F663B3E00C106E4 /* Reachability.m in Sources */,
+				807227A91F663B3E00C106E4 /* Utils.m in Sources */,
+				807227A61F663B3E00C106E4 /* DataBaseModel.m in Sources */,
+				807227A41F663B3E00C106E4 /* LFCGzipUtillity.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -120,8 +120,6 @@ static sqlite3 *db = nil;
 
 }
 
-
-
 #pragma mark - 批量更新
 - (void)batchUpdeate:(NSArray *)modelArray {
 
@@ -146,9 +144,9 @@ static sqlite3 *db = nil;
 }
 
 #pragma mark 删除数据(删)
--(void)deleteWithStatus:(NSInteger)status {
+-(void)deleteWithStatus:(NSInteger)status repeatCount:(NSInteger)repeatCount {
     
-    NSString *deleteSql = [NSString stringWithFormat:@"DELETE FROM RNKitSensor WHERE status = '%ld'",status];
+    NSString *deleteSql = [NSString stringWithFormat:@"DELETE FROM RNKitSensor WHERE status = '%ld' OR (times > '%ld' AND priority > 0)",status,repeatCount];
     
     int result = sqlite3_exec(db, deleteSql.UTF8String, NULL, NULL, NULL);
     
@@ -158,6 +156,19 @@ static sqlite3 *db = nil;
         YXLog(@"删除失败result=%d",result);
     }
 
+}
+
+#pragma mark - 状态为1(成功)删除
+-(void)deleteWithStatus:(NSInteger)status {
+    NSString *deleteSql = [NSString stringWithFormat:@"DELETE FROM RNKitSensor WHERE status = '%ld'",status];
+    
+    int result = sqlite3_exec(db, deleteSql.UTF8String, NULL, NULL, NULL);
+    
+    if (result == SQLITE_OK) {
+        YXLog(@"删除成功");
+    }else{
+        YXLog(@"删除失败result=%d",result);
+    }
 }
 
 
@@ -175,8 +186,8 @@ static sqlite3 *db = nil;
 #pragma mark 条件查
 -(NSArray *)selectWithLimit:(NSInteger)limit {
     
-    NSInteger limitNum = limit ? limit : 20;
-    NSString *selectSql = [NSString stringWithFormat:@"SELECT * FROM RNKitSensor WHERE status = 0 OR status = 2  ORDER BY priority LIMIT %ld",(long)limitNum];
+    NSInteger limitNum = limit ? limit : 30;
+    NSString *selectSql = [NSString stringWithFormat:@"SELECT * FROM RNKitSensor WHERE status = 0 OR status = 2 ORDER BY priority LIMIT %ld",(long)limitNum];
     
     return [self selectResults:selectSql];
     

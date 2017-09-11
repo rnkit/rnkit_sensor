@@ -7,7 +7,6 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
 
 #if __has_include(<React/RCTBridge.h>)
 #import <React/RCTBridgeModule.h>

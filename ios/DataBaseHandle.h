@@ -39,6 +39,8 @@
 
 
 //删除数据(删)
+-(void)deleteWithStatus:(NSInteger)status repeatCount:(NSInteger)repeatCount;
+//删除数据(删)
 -(void)deleteWithStatus:(NSInteger)status;
 
 
