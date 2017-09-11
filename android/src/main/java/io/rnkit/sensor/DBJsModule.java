@@ -95,7 +95,7 @@ public class DBJsModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void getFailTimes(Promise promise) {
+    public void getFailCount(Promise promise) {
         if (sharedPreferences == null) {
             sharedPreferences = getReactApplicationContext().getSharedPreferences(this.getClass().getName(), Context.MODE_PRIVATE);
         }
