@@ -95,19 +95,11 @@ public class DBJsModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void saveValue(String key, int value) {
+    public void getFailTimes(Promise promise) {
         if (sharedPreferences == null) {
             sharedPreferences = getReactApplicationContext().getSharedPreferences(this.getClass().getName(), Context.MODE_PRIVATE);
         }
-        sharedPreferences.edit().putInt(key, value).apply();
-    }
-
-    @ReactMethod
-    public void getValue(String key, Promise promise) {
-        if (sharedPreferences == null) {
-            sharedPreferences = getReactApplicationContext().getSharedPreferences(this.getClass().getName(), Context.MODE_PRIVATE);
-        }
-        int i = sharedPreferences.getInt(key, 0);
+        int i = sharedPreferences.getInt(StaticUtil.KEY_FAIL_TIMES, 0);
         if (i == 0) {
             promise.resolve(0);
         } else {
