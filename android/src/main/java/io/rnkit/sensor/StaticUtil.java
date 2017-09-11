@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.telephony.TelephonyManager;
+import android.util.Base64;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -51,11 +52,14 @@ class StaticUtil {
 
     static String deviceId = "";
 
+    static final String KEY_FAIL_TIMES = "failTimes";
+
     static String sendPost(String url, String hashString, long timeStamp) {
         //输入请求网络日志
         System.out.println("post_url=" + url);
         System.out.println("post_param=" + hashString);
-        String signString = getMD5(appKey + hashString + timeStamp);
+        String signString = getMD5(hashString + appKey + timeStamp).toLowerCase();
+        System.out.println("签名=" + signString);
         BufferedReader in = null;
         String result = "";
         HttpsURLConnection conn = null;
@@ -75,7 +79,7 @@ class StaticUtil {
             conn.setRequestProperty("content-timestamp", String.valueOf(timeStamp));
             conn.connect();
             OutputStreamWriter osw = new OutputStreamWriter(conn.getOutputStream(), "utf-8");
-            osw.write(compress(hashString));
+            osw.write(gzip(hashString));
             osw.flush();
             osw.close();
             if (conn.getResponseCode() == 200) {
@@ -194,15 +198,23 @@ class StaticUtil {
         return md5str.toString().toUpperCase();
     }
 
-    private static String compress(String str) throws IOException {
-        if (str == null || str.length() == 0) {
-            return str;
-        }
+    public static String gzip(String primStr) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        GZIPOutputStream gzip = new GZIPOutputStream(out);
-        gzip.write(str.getBytes());
-        gzip.close();
-        return out.toString();
+        GZIPOutputStream gzip = null;
+        try {
+            gzip = new GZIPOutputStream(out);
+            gzip.write(primStr.getBytes("UTF-8"));
+        } catch (IOException e) {
+        } finally {
+            if (gzip != null) {
+                try {
+                    gzip.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return Base64.encodeToString(out.toByteArray(), Base64.DEFAULT);
     }
 
     static String getDeviceId(Context context) {
