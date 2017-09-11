@@ -102,7 +102,7 @@ static NSInteger repeatCount = 3;
         
         while (true) {
             
-            if (strongSelf.enterBackground || strongSelf.maxUploadNum > 5) {
+            if (strongSelf.enterBackground || strongSelf.maxUploadNum > 4) {
                 
                 [[DataBaseHandle shareDataBase] closeDB];
                 break;
