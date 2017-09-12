@@ -2,38 +2,38 @@
 [![react-native][rn-badge]][rn]
 [![MIT][license-badge]][license]
 [![bitHound Score][bithound-badge]][bithound]
-[![Downloads](https://img.shields.io/npm/dm/rnkit-excard.svg)](https://www.npmjs.com/package/rnkit-excard)
+[![Downloads](https://img.shields.io/npm/dm/rnkit_sensor.svg)](https://www.npmjs.com/package/rnkit_sensor)
 
-易道博识-图像识别 for [React Native][rn].
+埋点 for [React Native][rn].
 
 [**Support me with a Follow**](https://github.com/simman/followers)
 
-[npm-badge]: https://img.shields.io/npm/v/rnkit-excard.svg
-[npm]: https://www.npmjs.com/package/rnkit-excard
+[npm-badge]: https://img.shields.io/npm/v/rnkit_sensor.svg
+[npm]: https://www.npmjs.com/package/rnkit_sensor
 [rn-badge]: https://img.shields.io/badge/react--native-v0.40-05A5D1.svg
 [rn]: https://facebook.github.io/react-native
 [license-badge]: https://img.shields.io/dub/l/vibe-d.svg
-[license]: https://raw.githubusercontent.com/rnkit/rnkit-excard/master/LICENSE
-[bithound-badge]: https://www.bithound.io/github/rnkit/rnkit-excard/badges/score.svg
-[bithound]: https://www.bithound.io/github/rnkit/rnkit-excard
+[license]: https://raw.githubusercontent.com/rnkit/rnkit_sensor/master/LICENSE
+[bithound-badge]: https://www.bithound.io/github/rnkit/rnkit_sensor/badges/score.svg
+[bithound]: https://www.bithound.io/github/rnkit/rnkit_sensor
 
 ## Getting Started
 
-First, `cd` to your RN project directory, and install RNMK through [rnpm](https://github.com/rnpm/rnpm) . If you don't have rnpm, you can install RNMK from npm with the command `npm i -S rnkit-excard` and link it manually (see below).
+First, `cd` to your RN project directory, and install RNMK through [rnpm](https://github.com/rnpm/rnpm) . If you don't have rnpm, you can install RNMK from npm with the command `npm i -S rnkit_sensor` and link it manually (see below).
 
 ### iOS
 
 * #### React Native < 0.29 (Using rnpm)
 
-  `rnpm install rnkit-excard`
+  `rnpm install rnkit_sensor`
 
 * #### React Native >= 0.29
-  `$npm install -S rnkit-excard`
+  `$npm install -S rnkit_sensor`
 
-  `$react-native link rnkit-excard`
+  `$react-native link rnkit_sensor`
 
 #### Manually
-1. Add `node_modules/rnkit-excard/ios/RNKitExcard.xcodeproj` to your xcode project, usually under the `Libraries` group
+1. Add `node_modules/rnkit_sensor/ios/RNKitExcard.xcodeproj` to your xcode project, usually under the `Libraries` group
 1. Add `libRNKitExcard.a` (from `Products` under `RNKitExcard.xcodeproj`) to build target's `Linked Frameworks and Libraries` list
 1. Add ocr framework to `$(PROJECT_DIR)/Frameworks.`
 
@@ -41,20 +41,20 @@ First, `cd` to your RN project directory, and install RNMK through [rnpm](https:
 
 * #### React Native < 0.29 (Using rnpm)
 
-  `rnpm install rnkit-excard`
+  `rnpm install rnkit_sensor`
 
 * #### React Native >= 0.29
-  `$npm install -S rnkit-excard`
+  `$npm install -S rnkit_sensor`
 
-  `$react-native link rnkit-excard`
+  `$react-native link rnkit_sensor`
 
 #### Manually
 1. JDK 7+ is required
 1. Add the following snippet to your `android/settings.gradle`:
 
   ```gradle
-include ':rnkit-excard'
-project(':rnkit-excard').projectDir = new File(rootProject.projectDir, '../node_modules/rnkit-excard/android/app')
+include ':rnkit_sensor'
+project(':rnkit_sensor').projectDir = new File(rootProject.projectDir, '../node_modules/rnkit_sensor/android/app')
   ```
   
 1. Declare the dependency in your `android/app/build.gradle`
@@ -62,7 +62,7 @@ project(':rnkit-excard').projectDir = new File(rootProject.projectDir, '../node_
   ```gradle
   dependencies {
       ...
-      compile project(':rnkit-excard')
+      compile project(':rnkit_sensor')
   }
   ```
   
@@ -79,7 +79,7 @@ project(':rnkit-excard').projectDir = new File(rootProject.projectDir, '../node_
   ```
 1. Add Module `ExBankCardSDK` And `ExCardSDK` In Your Main Project.
 
-Finally, you're good to go, feel free to require `rnkit-excard` in your JS files.
+Finally, you're good to go, feel free to require `rnkit_sensor` in your JS files.
 
 Have fun! :metal:
 
@@ -88,7 +88,7 @@ Have fun! :metal:
 Import library
 
 ```
-import RNKitExcard from 'rnkit-excard';
+import RNKitExcard from 'rnkit_sensor';
 ```
 
 ### Init
@@ -140,214 +140,6 @@ RNKitExcard.config({
 - MaskAll
 - AllButUpsideDown
 
-### 一、银行卡识别
-
-#### 1. 使用摄像头、相册识别
-
-```jsx
-try {
-	const result = await RNKitExcard.recoBankFromStream();
-} catch (error) {
-	if (error.code === -1) {
-		console.log('on cancel')
-	} else {
-		console.log(error)
-	}
-}
-```
-
-#### 2. 使用远程或本地图片识别
-
-```jsx
-try {
-	const imagePath = '...';
-	const result = await RNKitExcard.recoBankFromStillImage(imagePath);
-} catch (error) {
-	if (error.code === -1) {
-		console.log('on cancel')
-	} else {
-		console.log(error)
-	}
-}
-```
-
-返回值
-
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| bankName | string |  | 银行名称 |
-| cardName | string |  | 卡名称 |
-| cardType | string |  | 卡类型 |
-| cardNum | string |  | 卡号 |
-| validDate | string |  | 有限期 |
-| fullImgPath | string |  | 银行卡全图 |
-| cardNumImgPath | string |  | 银行卡号截图 |
-
-### 二、驾驶证识别
-
-#### 1. 使用摄像头、相册识别
-
-```jsx
-try {
-	const result = await RNKitExcard.recoDRCardFromStream();
-} catch (error) {
-	if (error.code === -1) {
-		console.log('on cancel')
-	} else {
-		console.log(error)
-	}
-}
-```
-
-#### 2. 使用远程或本地图片识别
-
-```jsx
-try {
-	const imagePath = '...';
-	const result = await RNKitExcard.recoDRCardFromStillImage(imagePath);
-} catch (error) {
-	if (error.code === -1) {
-		console.log('on cancel')
-	} else {
-		console.log(error)
-	}
-}
-```
-
-返回值
-
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| name | string |  | 姓名 |
-| sex | string |  | 性别 |
-| nation | string |  | 国籍 |
-| cardId | string |  | 身份证号码 |
-| address | string |  | 住址 |
-| birth | string |  | 出生日期 |
-| issueDate | string |  | 初次领证时间 |
-| driveType | string |  | 准驾车型 |
-| validDate | string |  | 有效期至日期 |
-| fullImgPath | string |  | 驾驶证全图 |
-
-### 三、行驶证识别
-
-#### 1. 使用摄像头、相册识别
-
-```jsx
-try {
-	const result = await RNKitExcard.recoVECardFromStream();
-} catch (error) {
-	if (error.code === -1) {
-		console.log('on cancel')
-	} else {
-		console.log(error)
-	}
-}
-```
-
-#### 2. 使用远程或本地图片识别
-
-```jsx
-try {
-	const imagePath = '...';
-	const result = await RNKitExcard.recoVECardFromStillImage(imagePath);
-} catch (error) {
-	if (error.code === -1) {
-		console.log('on cancel')
-	} else {
-		console.log(error)
-	}
-}
-```
-
-返回值
-
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| plateNo | string |  | 号牌号码 |
-| vehicleType | string |  | 车辆类型 |
-| owner | string |  | 所有人 |
-| address | string |  | 住址 |
-| model | string |  | 品牌型号 |
-| useCharacter | string |  | 使用性质 |
-| engineNo | string |  | 发动机号 |
-| VIN | string |  | 车辆识别代码 |
-| registerDate | string |  | 注册日期 |
-| issueDate | string |  | 发证日期 |
-| fullImgPath | string |  | 行驶证全图 |
-
-### 四、身份证识别
-
-#### 1. 使用摄像头、相册识别
-
-```jsx
-try {
-	const bFront = true  // 身份证方向，true-正面，false-背面
-	const result = await RNKitExcard.recoIDCardFromStreamWithSide(bFront);
-} catch (error) {
-	if (error.code === -1) {
-		console.log('on cancel')
-	} else {
-		console.log(error)
-	}
-}
-```
-
-#### 2. 使用远程或本地图片识别
-
-```jsx
-try {
-	const imagePath = '...';
-	const result = await RNKitExcard.recoIDCardFromStillImage(imagePath);
-} catch (error) {
-	if (error.code === -1) {
-		console.log('on cancel')
-	} else {
-		console.log(error)
-	}
-}
-```
-
-返回值
-
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| type | int |  | 1:正面  2:反面 |
-| name | string |  | 姓名 |
-| gender | string |  | 性别 |
-| nation | string |  | 名族 |
-| birth | string |  | 出生 |
-| address | string |  | 地址 |
-| code | string |  | 身份证 |
-| issue | string |  | 签发机关 |
-| valid | string |  | 有效期 |
-| frontShadow | int |  | 1:正面图像有遮挡 0:正面图像无遮挡 |
-| backShadow | int |  | 1:背面图像有遮挡 0:背面图像无遮挡 |
-| faceImgPath | string |  | 人脸截图 |
-| frontFullImgPath | string |  | 身份证正面全图 |
-| backFullImgPath | string | | 身份证背面全图 |
-
-### 五、常量
-
-```jsx
-const sdkVersion = RNKitExcard.sdkVersion;
-const kernelVersion = RNKitExcard.kernelVersion;
-```
-
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| sdkVersion | string |  | sdk版本号 |
-| kernelVersion | string |  | 识别核心版本号 |
-
-### 六、clean 清理图片临时目录
-
-```jsx
-try {
-	const result = await RNKitExcard.clean();
-} catch (error) {
-	console.log(error)
-}
-```
 
 ## Contribution
 
@@ -355,6 +147,6 @@ try {
 
 ## Questions
 
-Feel free to [contact me](mailto:liwei0990@gmail.com) or [create an issue](https://github.com/rnkit/rnkit-excard/issues/new)
+Feel free to [contact me](mailto:liwei0990@gmail.com) or [create an issue](https://github.com/rnkit/rnkit_sensor/issues/new)
 
 > made with ♥
