@@ -11,13 +11,26 @@ import RNKitSensor from "rnkit_sensor";
 export default class App extends Component {
     constructor(props){
         super(props);
-        RNKitSensor.initial('appkey',20,5);
-        RNKitSensor.check();
-        RNKitSensor.save("11111","222222",9);
+        RNKitSensor.initial('你好呀',20,5);
+        // RNKitSensor.check();
+        // RNKitSensor.save("11111","222222",9);
+        // RNKitSensor.save("11111","222222",9);
+        console.log('哈哈哈哈========');
+        this.state = {
+            count: -3
+        }
     }
 
-    _nextPage() {
 
+
+    async _nextPage() {
+
+        try {
+            var count = await RNKitSensor.getFailCount();
+            console.log('返回值是:====' + count);
+        } catch (e) {
+            console.log('错误是:====' + e);
+        }
     }
   render() {
 

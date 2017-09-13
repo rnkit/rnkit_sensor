@@ -38,6 +38,7 @@ RCT_EXPORT_MODULE();
 RCT_EXPORT_METHOD(initial:(NSString *)appkey maxVolume:(NSInteger)maxVolume repeatTimes:(NSInteger)repeatTimes)
 {
     [self.utils initial:appkey maxVolume:maxVolume repeatTimes:repeatTimes];
+    RCTLogInfo(@"初始化");
 }
 
 
@@ -52,6 +53,7 @@ RCT_EXPORT_METHOD(initial:(NSString *)appkey maxVolume:(NSInteger)maxVolume repe
 RCT_EXPORT_METHOD(save:(NSString *)jsonBody requestUrl:(NSString *)requestUrl priorityLevel:(NSInteger)level)
 {
     [self.utils insertToDB:jsonBody requestUrl:requestUrl priorityLevel:level];
+    RCTLogInfo(@"存值成功");
 }
 
 
@@ -61,6 +63,7 @@ RCT_EXPORT_METHOD(save:(NSString *)jsonBody requestUrl:(NSString *)requestUrl pr
 RCT_EXPORT_METHOD(check)
 {
     [self.utils upload];
+    RCTLogInfo(@"上传");
    
 }
 
@@ -73,12 +76,13 @@ RCT_REMAP_METHOD(getFailCount,
                  resolver:(RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject)
 {
-    int count = [[[NSUserDefaults standardUserDefaults] objectForKey:@"fail_repeatCount"] intValue];
-    RCTLogInfo(@"最大上传次数失败次数====%d",count);
+    NSInteger count = [[[NSUserDefaults standardUserDefaults] objectForKey:@"fail_repeatCount"] integerValue];
+    RCTLogInfo(@"最大上传次数失败次数====%ld",(long)count);
     if (count >= 0) {
-        resolve(count);
+        resolve(@(count));
     } else {
-        reject(@"无超过最大上传次数的数据");
+        NSError *error=[NSError errorWithDomain:@"无超过最大上传次数的数据" code:101 userInfo:nil];
+        reject(@"101",@"无超过最大上传次数的数据",error);
     }
 }
 

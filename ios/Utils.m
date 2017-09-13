@@ -49,7 +49,6 @@ static NSInteger repeatCount = 3;
     maxVolumeNum = maxVolume;
     appkeyStr = appkey;
     repeatCount = repeatTimes;
-    NSLog(@"idfa====%@",[self idfa]);
 }
 
 
@@ -75,7 +74,6 @@ static NSInteger repeatCount = 3;
 
 - (void)upload {
     
-    NSLog(@"最大maxVolume:%ld,appkey:%@,重复次数:%ld",maxVolumeNum,appkeyStr,repeatCount);
     if (!([self isNullString:appkeyStr])) {
         NSLog(@"缺少appkey值");
         return;
