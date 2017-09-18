@@ -18,17 +18,19 @@
 
 static dispatch_queue_t queue = nil;
 
+static dispatch_semaphore_t semaphore = nil;
+
 static NSInteger maxVolumeNum = 0;
 
 static NSString *appkeyStr;
 
 static NSInteger repeatCount = 3;
 
-@interface Utils ()
+@interface Utils ()<NSURLSessionDelegate>
 
 @property (nonatomic, strong) NSMutableArray *modelArray;
 @property (nonatomic, assign) BOOL enterBackground;
-@property (nonatomic, assign) NSInteger maxUploadNum;//有网情况下,上传失败,最多重复上传五次
+
 @end
 
 @implementation Utils
@@ -87,7 +89,8 @@ static NSInteger repeatCount = 3;
     }
     
     [[DataBaseHandle shareDataBase] openDB];
-    [[DataBaseHandle shareDataBase] deleteWithStatus:1];
+    //一次最多循环5次
+    __block int loopTimes = 0;
     
     if (queue == nil) {
         queue = dispatch_queue_create("io.rnkit.sensor", DISPATCH_QUEUE_SERIAL);
@@ -100,60 +103,60 @@ static NSInteger repeatCount = 3;
         
         while (true) {
             
-            if (strongSelf.enterBackground || strongSelf.maxUploadNum > 4) {
-                
+            NSArray *failArr = [[DataBaseHandle shareDataBase] selectWithRepeatCount:repeatCount];
+            int failCount = (int)failArr.count;
+            
+            if (failCount > 0) {
+                NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+                int preCount = [[defaults objectForKey:@"fail_repeatCount"] intValue];
+                int nowCount = preCount + failCount;
+                [defaults setObject:@(nowCount) forKey:@"fail_repeatCount"];
+                [defaults synchronize];
+                [[DataBaseHandle shareDataBase] deleteWithStatus:1 repeatCount:repeatCount];
+            }
+            
+            if (strongSelf.enterBackground || loopTimes > 4) {
                 [[DataBaseHandle shareDataBase] closeDB];
                 break;
             }
             
-            strongSelf.maxUploadNum++;
+            loopTimes++;
             
             NSArray *dbArray = [[DataBaseHandle shareDataBase] selectWithLimit:maxVolumeNum];
             
             if (dbArray.count > 0) {
-                
                 strongSelf.modelArray = [NSMutableArray array];
-                
-                for (DataBaseModel *model in dbArray) {
-                    model.times += 1;
-                    [strongSelf.modelArray addObject:model];
-                    
-                    NSDate *now = [NSDate date];
-                    NSUInteger timeStamp = (NSUInteger)(([now timeIntervalSince1970]) * 1000);
-                    NSDictionary *dict = @{@"timestamp":[NSString stringWithFormat:@"%lu",(unsigned long)timeStamp],
-                                           @"distinct_id":[self idfa],
-                                           @"bizType":@"B005",
-                                           @"events":@[model.jsonBody]
-                                           };
-                    
-                    [strongSelf requestWithJsonBody:[strongSelf toJsonStringFromParam:dict] requestUrl:model.requestUrl withID:model.mid];
-                    
-                }
-                
-                if (self.modelArray.count > 0) {
-                    [[DataBaseHandle shareDataBase] batchUpdeate:self.modelArray];
-                    int failRepeat = 0;
-                    for (DataBaseModel *model in self.modelArray) {
-                        if (model.times > repeatCount && model.priority > 0) {
-                            failRepeat+=1;
-                        }
+                @try {
+                    for (DataBaseModel *model in dbArray) {
+                        
+                        model.times += 1;
+                        [strongSelf.modelArray addObject:model];
+                        
+                        NSDate *now = [NSDate date];
+                        NSUInteger timeStamp = (NSUInteger)(([now timeIntervalSince1970]) * 1000);
+                        NSDictionary *event = [strongSelf toArrayOrNSDictionaryFromData:[model.jsonBody dataUsingEncoding:NSUTF8StringEncoding]];
+                        
+                        NSDictionary *dict = @{@"timestamp":[NSString stringWithFormat:@"%lu",(unsigned long)timeStamp],
+                                               @"distinct_id":[self idfa],
+                                               @"bizType":@"B005",
+                                               @"events":@[event]
+                                               };
+                        
+                        [strongSelf requestWithJsonBody:[strongSelf toJsonStringFromParam:dict] requestUrl:model.requestUrl mid:model.mid];
                     }
-                    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-                    int preCount = [[defaults objectForKey:@"fail_repeatCount"] intValue];
-                    int nowCount = preCount + failRepeat;
                     
-                    [defaults setObject:@(nowCount) forKey:@"fail_repeatCount"];
-                    [defaults synchronize];
+                    [[DataBaseHandle shareDataBase] batchUpdeate:self.modelArray];
+                    [[DataBaseHandle shareDataBase] deleteWithStatus:1];
                     
-                    [[DataBaseHandle shareDataBase] deleteWithStatus:1 repeatCount:repeatCount];
+                    
+                } @catch (NSException *exception) {
+                    NSLog(@"错误===%@",exception.description);
+                } @finally {
+                    NSLog(@"finally");
                 }
                 
             } else {
-                
-                [[DataBaseHandle shareDataBase] resetId];
-                
                 [[DataBaseHandle shareDataBase] closeDB];
-                
                 break;
             }
         }
@@ -163,19 +166,7 @@ static NSInteger repeatCount = 3;
 }
 
 
-- (void)changeWithID:(NSInteger)mid withStatus:(NSInteger)status {
-    
-    for (DataBaseModel *model in self.modelArray) {
-        @autoreleasepool {
-            if (mid == model.mid) {
-               model.status = status;
-            }
-        }
-    }
-}
-
-
-- (void)requestWithJsonBody:(NSString *)jsonBody requestUrl:(NSString *)requestUrl withID:(NSInteger)mid{
+- (void)requestWithJsonBody:(NSString *)jsonBody requestUrl:(NSString *)requestUrl mid:(NSInteger)mid{
     
     @try {
         NSDate *now = [NSDate date];
@@ -188,22 +179,34 @@ static NSInteger repeatCount = 3;
         request.HTTPMethod = @"POST";
         request.timeoutInterval = 10.0;
         
+        [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
         [request setValue:@"true" forHTTPHeaderField:@"iscompress"];
         [request setValue:signatureString forHTTPHeaderField:@"content-md5"];
         [request setValue:[NSString stringWithFormat:@"%lu",(unsigned long)timeStamp] forHTTPHeaderField:@"content-timestamp"];
         
-        request.HTTPBody = [LFCGzipUtillity gzipData:[jsonBody dataUsingEncoding:NSUTF8StringEncoding]];
+        request.HTTPBody = [[LFCGzipUtillity gzipData:[jsonBody dataUsingEncoding:NSUTF8StringEncoding]] base64EncodedDataWithOptions:0];
+        
+        if (semaphore == nil) {
+            semaphore = dispatch_semaphore_create(0);
+        }
         
         if (kIOS9) {
-            NSURLSession *session = [NSURLSession sharedSession];
+            
+            NSURLSessionConfiguration *config = [NSURLSessionConfiguration defaultSessionConfiguration];
+            NSURLSession *session = [NSURLSession sessionWithConfiguration:config delegate:self delegateQueue:nil];
+            
             NSURLSessionDataTask *task = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+                
                 [self responseData:data error:error withID:mid];
+                
+                dispatch_semaphore_signal(semaphore);
             }];
             [task resume];
+            dispatch_semaphore_wait(semaphore,DISPATCH_TIME_FOREVER);
         } else {
-            [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse * _Nullable response, NSData * _Nullable data, NSError * _Nullable connectionError) {
-                [self responseData:data error:connectionError withID:mid];
-            }];
+            NSError *error = nil;
+            NSData *data = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:&error];
+            [self responseData:data error:error withID:mid];
             
         }
         
@@ -215,7 +218,6 @@ static NSInteger repeatCount = 3;
     
     
 }
-
 
 
 - (NSString *)idfa
@@ -250,20 +252,34 @@ static NSInteger repeatCount = 3;
 }
 
 
-- (void)responseData:(NSData *)data error:(NSError *)error withID:(NSInteger)mid {
+- (void)changeWithID:(NSInteger)mid withStatus:(NSInteger)status {
+    for (DataBaseModel *model in self.modelArray) {
+        @autoreleasepool {
+            if (model.mid == mid) {
+                model.status = status;
+            }
+        }
+    }
+}
+
+
+
+- (void)responseData:(NSData *)data error:(NSError *)error withID:(NSInteger)mid{
     
     if (error) {
         [self changeWithID:mid withStatus:2];
+        
     } else {
         
         NSDictionary *dict = [self toArrayOrNSDictionaryFromData:data];
+        NSLog(@"返回字典是:====%@",dict);
+        NSLog(@"返回信息是:====%@",dict[@"msg"]);
         if (dict) {
             if ([self isNullString:dict[@"flag"]] && [@"S" isEqualToString:dict[@"flag"]]) {
                 [self changeWithID:mid withStatus:1];
                 
             } else {
                 [self changeWithID:mid withStatus:2];
-            
             }
         }else{
             [self changeWithID:mid withStatus:2];
@@ -278,6 +294,7 @@ static NSInteger repeatCount = 3;
     NSData *data = [NSJSONSerialization dataWithJSONObject:param options:NSJSONWritingPrettyPrinted error:&error];
     NSString *jsonStr = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     if ([self isNullString:jsonStr] && error == nil) {
+        NSLog(@"转为的json字符串:=====%@",jsonStr);
         return jsonStr;
     }else {
         return @"";
@@ -308,6 +325,22 @@ static NSInteger repeatCount = 3;
 {
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground:) name:UIApplicationDidEnterBackgroundNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground:) name:UIApplicationWillEnterForegroundNotification object:nil];
+}
+
+
+
+#pragma mark - sessionDelegate
+-(void)URLSession:(NSURLSession *)session didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition, NSURLCredential * _Nullable))completionHandler {
+    
+    // 采用信任证书方式执行
+    if (challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust) {
+        NSURLCredential *cre = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
+        // 调用block
+        completionHandler(NSURLSessionAuthChallengeUseCredential,cre);
+    }else {
+        completionHandler(NSURLSessionAuthChallengePerformDefaultHandling,nil);
+    }
+    
 }
 
 

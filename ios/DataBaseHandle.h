@@ -44,7 +44,6 @@
 -(void)deleteWithStatus:(NSInteger)status;
 
 
-
 //查找数据(查)
 
 //1.全查
@@ -53,6 +52,8 @@
 
 //2.条件查
 -(NSArray *)selectWithLimit:(NSInteger)limit;
+-(NSArray *)selectWithRepeatCount:(NSInteger)repeatCount;
+
 
 //重置id
 -(void)resetId;

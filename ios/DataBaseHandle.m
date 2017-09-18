@@ -187,11 +187,22 @@ static sqlite3 *db = nil;
 -(NSArray *)selectWithLimit:(NSInteger)limit {
     
     NSInteger limitNum = limit ? limit : 30;
+    
     NSString *selectSql = [NSString stringWithFormat:@"SELECT * FROM RNKitSensor WHERE status = 0 OR status = 2 ORDER BY priority LIMIT %ld",(long)limitNum];
     
     return [self selectResults:selectSql];
     
 }
+
+#pragma mark - 查询达到最大失败次数
+-(NSArray *)selectWithRepeatCount:(NSInteger)repeatCount {
+    
+    NSString *selectSql = [NSString stringWithFormat:@"SELECT * FROM RNKitSensor WHERE times > '%ld' AND priority > 0 ORDER BY priority",repeatCount];
+    
+    return [self selectResults:selectSql];
+}
+
+
 
 
 - (NSArray *)selectResults:(NSString *)selectSql{
@@ -232,6 +243,7 @@ static sqlite3 *db = nil;
     }
     
     sqlite3_finalize(stmt);
+    
     for (DataBaseModel *model in modelArray) {
         YXLog(@"mid:%ld,jsonBody:%@,requestUrl:%@,timeStamp:%lu,times:%ld,status:%ld,priority:%ld",model.mid,model.jsonBody,model.requestUrl,model.timeStamp,model.times,model.status,model.priority);
     }
