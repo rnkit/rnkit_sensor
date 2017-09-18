@@ -1,9 +1,9 @@
 {
-  "name": "rnkit-sensor",
+  "name": "rnkit_sensor",
   "description": "埋点",
   "main": "lib/index.js",
   "author": "carlos",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "scripts": {
     "test": "npm run test"
   },
