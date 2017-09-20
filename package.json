@@ -3,7 +3,7 @@
   "description": "埋点",
   "main": "lib/index.js",
   "author": "carlos",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "scripts": {
     "test": "npm run test"
   },
