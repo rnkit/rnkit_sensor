@@ -106,4 +106,19 @@ public class DBJsModule extends ReactContextBaseJavaModule {
             promise.reject("没有这个值", "没有这个值");
         }
     }
+
+    @ReactMethod
+    public void getChanel(Promise promise) {
+        ApplicationInfo applicationInfo = null;
+        try {
+            applicationInfo = getReactApplicationContext().getPackageManager().getApplicationInfo(getReactApplicationContext().getPackageName(), PackageManager.GET_META_DATA);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        if (applicationInfo == null) {
+            promise.reject("获取失败", "获取失败");
+        } else {
+            promise.resolve(applicationInfo.metaData.getString("UMENG_CHANNEL"));
+        }
+    }
 }
