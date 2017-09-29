@@ -50,7 +50,7 @@ static sqlite3 *db = nil;
         YXLog(@"数据库打开成功");
         if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"existTable"] intValue] == 0) {
             [self createTable];
-        }
+        }                
     } else {
         YXLog(@"数据库打开失败result=%d",result);
     }
@@ -94,14 +94,23 @@ static sqlite3 *db = nil;
 #pragma mark 插入数据(增)
 -(void)insertModel:(DataBaseModel *)dbModel {
     
-    NSString *insertSql = [NSString stringWithFormat:@"INSERT INTO RNKitSensor (jsonBody,requestUrl,timeStamp,times,status,priority) VALUES ('%@','%@','%lu','%ld','%ld','%ld')",dbModel.jsonBody,dbModel.requestUrl,dbModel.timeStamp,dbModel.times,dbModel.status,dbModel.priority];
-    
-    int result = sqlite3_exec(db, insertSql.UTF8String, NULL, NULL, NULL);
-    if (result == SQLITE_OK) {
-        YXLog(@"添加成功");
-    }else{
-        YXLog(@"添加失败result=%d",result);
+    @try {
+        NSString *insertSql = [NSString stringWithFormat:@"INSERT INTO RNKitSensor (jsonBody,requestUrl,timeStamp,times,status,priority) VALUES ('%@','%@','%lu','%ld','%ld','%ld')",dbModel.jsonBody,dbModel.requestUrl,dbModel.timeStamp,dbModel.times,dbModel.status,dbModel.priority];
+
+        int result = sqlite3_exec(db, insertSql.UTF8String, NULL, NULL, NULL);
+        if (result == SQLITE_OK) {
+            YXLog(@"添加成功");
+        }else{
+            YXLog(@"添加失败result=%d",result);
+        }
+
+    } @catch (NSException *exception) {
+        YXLog(@"错误===%@",exception.description);
+    } @finally {
+        YXLog(@"finally");
     }
+    
+    
 }
 
 
@@ -207,48 +216,55 @@ static sqlite3 *db = nil;
 
 - (NSArray *)selectResults:(NSString *)selectSql{
     
-    NSMutableArray *modelArray = nil;
-    
-    sqlite3_stmt *stmt = nil;
-    
-    int result = sqlite3_prepare_v2(db, selectSql.UTF8String, -1, &stmt, NULL);
-    
-    if (result == SQLITE_OK) {
-        modelArray = [NSMutableArray array];
+    @try {
+        NSMutableArray *modelArray = nil;
         
-        while (sqlite3_step(stmt) == SQLITE_ROW) {
-            NSInteger mid = sqlite3_column_int(stmt, 0);
-            NSString *jsonBody = [NSString stringWithUTF8String:(const char *) sqlite3_column_text(stmt, 1)];
-            NSString *requestUrl = [NSString stringWithUTF8String:(const char *) sqlite3_column_text(stmt, 2)];
-            NSUInteger timeStamp = sqlite3_column_double(stmt, 3);
-            NSInteger times = sqlite3_column_int(stmt, 4);
-            NSInteger status = sqlite3_column_int(stmt, 5);
-            NSInteger priority = sqlite3_column_int(stmt, 6);
+        sqlite3_stmt *stmt = nil;
+        
+        int result = sqlite3_prepare_v2(db, selectSql.UTF8String, -1, &stmt, NULL);
+        
+        if (result == SQLITE_OK) {
+            modelArray = [NSMutableArray array];
             
-            DataBaseModel *model = [DataBaseModel new];
-            model.mid = mid;
-            model.jsonBody = jsonBody;
-            model.requestUrl = requestUrl;
-            model.timeStamp = timeStamp;
-            model.times = times;
-            model.status = status;
-            model.priority = priority;
-            
-            [modelArray addObject:model];
-            
+            while (sqlite3_step(stmt) == SQLITE_ROW) {
+                NSInteger mid = sqlite3_column_int(stmt, 0);
+                NSString *jsonBody = [NSString stringWithUTF8String:(const char *) sqlite3_column_text(stmt, 1)];
+                NSString *requestUrl = [NSString stringWithUTF8String:(const char *) sqlite3_column_text(stmt, 2)];
+                NSUInteger timeStamp = sqlite3_column_double(stmt, 3);
+                NSInteger times = sqlite3_column_int(stmt, 4);
+                NSInteger status = sqlite3_column_int(stmt, 5);
+                NSInteger priority = sqlite3_column_int(stmt, 6);
+                
+                DataBaseModel *model = [DataBaseModel new];
+                model.mid = mid;
+                model.jsonBody = jsonBody;
+                model.requestUrl = requestUrl;
+                model.timeStamp = timeStamp;
+                model.times = times;
+                model.status = status;
+                model.priority = priority;
+                
+                [modelArray addObject:model];
+                
+            }
+            YXLog(@"查询成功");
+        } else{
+            YXLog(@"查询失败result=%d",result);
         }
-        YXLog(@"查询成功");
-    } else{
-        YXLog(@"查询失败result=%d",result);
+        
+        sqlite3_finalize(stmt);
+        
+        for (DataBaseModel *model in modelArray) {
+            YXLog(@"mid:%ld,jsonBody:%@,requestUrl:%@,timeStamp:%lu,times:%ld,status:%ld,priority:%ld",model.mid,model.jsonBody,model.requestUrl,model.timeStamp,model.times,model.status,model.priority);
+        }
+        
+        return modelArray;
+        
+    } @catch (NSException *exception) {
+        YXLog(@"错误===%@",exception.description);
+    } @finally {
+        YXLog(@"finally");
     }
-    
-    sqlite3_finalize(stmt);
-    
-    for (DataBaseModel *model in modelArray) {
-        YXLog(@"mid:%ld,jsonBody:%@,requestUrl:%@,timeStamp:%lu,times:%ld,status:%ld,priority:%ld",model.mid,model.jsonBody,model.requestUrl,model.timeStamp,model.times,model.status,model.priority);
-    }
-    
-    return modelArray;
 
 }
 
