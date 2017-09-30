@@ -57,8 +57,6 @@ static NSInteger repeatCount = 3;
 
 - (void)insertToDB:(NSString *)jsonBody requestUrl:(NSString *)requestUrl priorityLevel:(NSInteger)level {
     
-    [[DataBaseHandle shareDataBase] openDB];
-    
     NSDate *now = [NSDate date];
     DataBaseModel *model = [DataBaseModel new];
     model.jsonBody = [self isNullString:jsonBody] ? jsonBody : @"NO jsonBody";
@@ -68,9 +66,7 @@ static NSInteger repeatCount = 3;
     model.times = 0;
     model.status = 0;
     [[DataBaseHandle shareDataBase] insertModel:model];
-    
-    [[DataBaseHandle shareDataBase] closeDB];
-
+   
 }
 
 
@@ -89,7 +85,6 @@ static NSInteger repeatCount = 3;
         return;
     }
     
-    [[DataBaseHandle shareDataBase] openDB];
     //一次最多循环5次
     __block int loopTimes = 0;
     
@@ -99,7 +94,7 @@ static NSInteger repeatCount = 3;
     
     __weak typeof(self) weakSelf = self;
     
-    dispatch_sync(queue, ^{
+    dispatch_async(queue, ^{
         __strong typeof(self) strongSelf = weakSelf;
         @try {
             while (true) {
@@ -117,7 +112,6 @@ static NSInteger repeatCount = 3;
                 }
                 
                 if (strongSelf.enterBackground || loopTimes > 4) {
-                    [[DataBaseHandle shareDataBase] closeDB];
                     break;
                 }
                 
@@ -157,7 +151,6 @@ static NSInteger repeatCount = 3;
                     }
                     
                 } else {
-                    [[DataBaseHandle shareDataBase] closeDB];
                     break;
                 }
             }
