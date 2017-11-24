@@ -26,6 +26,8 @@ static NSString *appkeyStr;
 
 static NSInteger repeatCount = 3;
 
+static NSString *logEvent = @"evnt_ckapp_log_collect";
+
 @interface Utils ()<NSURLSessionDelegate>
 
 @property (nonatomic, strong) NSMutableArray *modelArray;
@@ -103,6 +105,11 @@ static NSInteger repeatCount = 3;
                 int failCount = (int)failArr.count;
                 
                 if (failCount > 0) {
+                    
+                    for (DataBaseModel *model in failArr) {
+                        [strongSelf addLog:model.jsonBody reason:@"事件因为失败次数过多而删除" requestUrl:model.requestUrl];
+                    }
+                    
                     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
                     int preCount = [[defaults objectForKey:@"fail_repeatCount"] intValue];
                     int nowCount = preCount + failCount;
@@ -137,7 +144,7 @@ static NSInteger repeatCount = 3;
                                                    @"events":@[event]
                                                    };
                             
-                            [strongSelf requestWithJsonBody:[strongSelf toJsonStringFromParam:dict] requestUrl:model.requestUrl mid:model.mid];
+                            [strongSelf requestWithJsonBody:[strongSelf toJsonStringFromParam:dict] model:model];
                         }
                         
                         [[DataBaseHandle shareDataBase] batchUpdeate:self.modelArray];
@@ -167,7 +174,7 @@ static NSInteger repeatCount = 3;
 }
 
 
-- (void)requestWithJsonBody:(NSString *)jsonBody requestUrl:(NSString *)requestUrl mid:(NSInteger)mid{
+- (void)requestWithJsonBody:(NSString *)jsonBody model:(DataBaseModel *)model{
     
     @try {
         NSDate *now = [NSDate date];
@@ -175,7 +182,7 @@ static NSInteger repeatCount = 3;
         
         NSString *signatureString = [[self getMD5:[NSString stringWithFormat:@"%@%@%lu",jsonBody,appkeyStr,(unsigned long)timeStamp]] lowercaseString];
         
-        NSURL *url = [NSURL URLWithString:requestUrl];
+        NSURL *url = [NSURL URLWithString:model.requestUrl];
         NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
         request.HTTPMethod = @"POST";
         request.timeoutInterval = 10.0;
@@ -198,7 +205,7 @@ static NSInteger repeatCount = 3;
             
             NSURLSessionDataTask *task = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
                 
-                [self responseData:data error:error withID:mid];
+                [self responseData:data error:error withModel:model];
                 
                 dispatch_semaphore_signal(semaphore);
             }];
@@ -207,7 +214,7 @@ static NSInteger repeatCount = 3;
         } else {
             NSError *error = nil;
             NSData *data = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:&error];
-            [self responseData:data error:error withID:mid];
+            [self responseData:data error:error withModel:model];
             
         }
         
@@ -265,10 +272,10 @@ static NSInteger repeatCount = 3;
 
 
 
-- (void)responseData:(NSData *)data error:(NSError *)error withID:(NSInteger)mid{
+- (void)responseData:(NSData *)data error:(NSError *)error withModel:(DataBaseModel *)model{
     
     if (error) {
-        [self changeWithID:mid withStatus:2];
+        [self changeWithID:model.mid withStatus:2];
         
     } else {
         
@@ -277,13 +284,13 @@ static NSInteger repeatCount = 3;
         NSLog(@"返回信息是:====%@",dict[@"msg"]);
         if (dict) {
             if ([self isNullString:dict[@"flag"]] && [@"S" isEqualToString:dict[@"flag"]]) {
-                [self changeWithID:mid withStatus:1];
-                
+                [self changeWithID:model.mid withStatus:1];
+                [self addLog:model.jsonBody reason:@"事件发送到服务器成功" requestUrl:model.requestUrl];
             } else {
-                [self changeWithID:mid withStatus:2];
+                [self changeWithID:model.mid withStatus:2];
             }
         }else{
-            [self changeWithID:mid withStatus:2];
+            [self changeWithID:model.mid withStatus:2];
         }
     }
     
@@ -319,6 +326,47 @@ static NSInteger repeatCount = 3;
         
     }
     
+}
+
+
+- (void)addLog:(NSString *)jsonBody reason:(NSString *)reason requestUrl:(NSString *)requestUrl {
+    @try {
+        
+         NSDictionary *event = [self toArrayOrNSDictionaryFromData:[jsonBody dataUsingEncoding:NSUTF8StringEncoding]];
+        NSString *eventType = event[@"event_type"];
+        
+        if (![self isNullString:eventType] || [logEvent isEqualToString:eventType]) {
+            return;
+        }
+        NSDate *now = [NSDate date];
+        NSUInteger timeStamp = (NSUInteger)(([now timeIntervalSince1970]) * 1000);
+       
+        NSString *eventPhone = event[@"fields"][@"phone_no"];
+        
+        NSString *eventTime = [NSString stringWithFormat:@"%@",event[@"seq_tns"]];
+        NSString *logStr = [NSString stringWithFormat:@"%@--%@--%@--%@",reason,eventType,eventTime,eventPhone];
+        
+        NSDictionary *fields = @{@"phone_no": eventPhone,
+                                 @"eventType": eventType,
+                                 @"eventTime": eventTime,
+                                 @"log":logStr
+                                 };
+        
+        
+        NSDictionary *log = @{@"event_type": logEvent,
+                                   @"seq_tns": @(timeStamp),
+                                   @"fields": fields
+                                   };
+        
+        
+        [self insertToDB:[self toJsonStringFromParam:log] requestUrl:requestUrl priorityLevel:0];
+        
+    } @catch (NSException *exception) {
+        NSLog(@"错误===%@",exception.description);
+        
+    } @finally {
+        NSLog(@"finally");
+    }
 }
 
 
