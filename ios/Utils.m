@@ -57,8 +57,6 @@ static NSInteger repeatCount = 3;
 
 - (void)insertToDB:(NSString *)jsonBody requestUrl:(NSString *)requestUrl priorityLevel:(NSInteger)level {
     
-    [[DataBaseHandle shareDataBase] openDB];
-    
     NSDate *now = [NSDate date];
     DataBaseModel *model = [DataBaseModel new];
     model.jsonBody = [self isNullString:jsonBody] ? jsonBody : @"NO jsonBody";
@@ -68,13 +66,12 @@ static NSInteger repeatCount = 3;
     model.times = 0;
     model.status = 0;
     [[DataBaseHandle shareDataBase] insertModel:model];
-    
-    [[DataBaseHandle shareDataBase] closeDB];
-
+   
 }
 
 
 - (void)upload {
+    
     
     if (!([self isNullString:appkeyStr])) {
         NSLog(@"缺少appkey值");
@@ -88,7 +85,6 @@ static NSInteger repeatCount = 3;
         return;
     }
     
-    [[DataBaseHandle shareDataBase] openDB];
     //一次最多循环5次
     __block int loopTimes = 0;
     
@@ -100,68 +96,73 @@ static NSInteger repeatCount = 3;
     
     dispatch_async(queue, ^{
         __strong typeof(self) strongSelf = weakSelf;
-        
-        while (true) {
-            
-            NSArray *failArr = [[DataBaseHandle shareDataBase] selectWithRepeatCount:repeatCount];
-            int failCount = (int)failArr.count;
-            
-            if (failCount > 0) {
-                NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-                int preCount = [[defaults objectForKey:@"fail_repeatCount"] intValue];
-                int nowCount = preCount + failCount;
-                [defaults setObject:@(nowCount) forKey:@"fail_repeatCount"];
-                [defaults synchronize];
-                [[DataBaseHandle shareDataBase] deleteWithStatus:1 repeatCount:repeatCount];
-            }
-            
-            if (strongSelf.enterBackground || loopTimes > 4) {
-                [[DataBaseHandle shareDataBase] closeDB];
-                break;
-            }
-            
-            loopTimes++;
-            
-            NSArray *dbArray = [[DataBaseHandle shareDataBase] selectWithLimit:maxVolumeNum];
-            
-            if (dbArray.count > 0) {
-                strongSelf.modelArray = [NSMutableArray array];
-                @try {
-                    for (DataBaseModel *model in dbArray) {
-                        
-                        model.times += 1;
-                        [strongSelf.modelArray addObject:model];
-                        
-                        NSDate *now = [NSDate date];
-                        NSUInteger timeStamp = (NSUInteger)(([now timeIntervalSince1970]) * 1000);
-                        NSDictionary *event = [strongSelf toArrayOrNSDictionaryFromData:[model.jsonBody dataUsingEncoding:NSUTF8StringEncoding]];
-                        
-                        NSDictionary *dict = @{@"timestamp":[NSString stringWithFormat:@"%lu",(unsigned long)timeStamp],
-                                               @"distinct_id":[self idfa],
-                                               @"bizType":@"B005",
-                                               @"events":@[event]
-                                               };
-                        
-                        [strongSelf requestWithJsonBody:[strongSelf toJsonStringFromParam:dict] requestUrl:model.requestUrl mid:model.mid];
-                    }
-                    
-                    [[DataBaseHandle shareDataBase] batchUpdeate:self.modelArray];
-                    [[DataBaseHandle shareDataBase] deleteWithStatus:1];
-                    
-                    
-                } @catch (NSException *exception) {
-                    NSLog(@"错误===%@",exception.description);
-                } @finally {
-                    NSLog(@"finally");
+        @try {
+            while (true) {
+                
+                NSArray *failArr = [[DataBaseHandle shareDataBase] selectWithRepeatCount:repeatCount];
+                int failCount = (int)failArr.count;
+                
+                if (failCount > 0) {
+                    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+                    int preCount = [[defaults objectForKey:@"fail_repeatCount"] intValue];
+                    int nowCount = preCount + failCount;
+                    [defaults setObject:@(nowCount) forKey:@"fail_repeatCount"];
+                    [defaults synchronize];
+                    [[DataBaseHandle shareDataBase] deleteWithStatus:1 repeatCount:repeatCount];
                 }
                 
-            } else {
-                [[DataBaseHandle shareDataBase] closeDB];
-                break;
+                if (strongSelf.enterBackground || loopTimes > 4) {
+                    break;
+                }
+                
+                loopTimes++;
+                
+                NSArray *dbArray = [[DataBaseHandle shareDataBase] selectWithLimit:maxVolumeNum];
+                
+                if (dbArray.count > 0) {
+                    strongSelf.modelArray = [NSMutableArray array];
+                    @try {
+                        for (DataBaseModel *model in dbArray) {
+                            
+                            model.times += 1;
+                            [strongSelf.modelArray addObject:model];
+                            
+                            NSDate *now = [NSDate date];
+                            NSUInteger timeStamp = (NSUInteger)(([now timeIntervalSince1970]) * 1000);
+                            NSDictionary *event = [strongSelf toArrayOrNSDictionaryFromData:[model.jsonBody dataUsingEncoding:NSUTF8StringEncoding]];
+                            
+                            NSDictionary *dict = @{@"timestamp":[NSString stringWithFormat:@"%lu",(unsigned long)timeStamp],
+                                                   @"distinct_id":[self idfa],
+                                                   @"bizType":@"B005",
+                                                   @"events":@[event]
+                                                   };
+                            
+                            [strongSelf requestWithJsonBody:[strongSelf toJsonStringFromParam:dict] requestUrl:model.requestUrl mid:model.mid];
+                        }
+                        
+                        [[DataBaseHandle shareDataBase] batchUpdeate:self.modelArray];
+                        [[DataBaseHandle shareDataBase] deleteWithStatus:1];
+                        
+                        
+                    } @catch (NSException *exception) {
+                        NSLog(@"错误===%@",exception.description);
+                    } @finally {
+                        NSLog(@"finally");
+                    }
+                    
+                } else {
+                    break;
+                }
             }
+        } @catch (NSException *exception) {
+            NSLog(@"错误===%@",exception.description);
+        } @finally {
+            NSLog(@"finally");
         }
         
     });
+    
+    
     
 }
 

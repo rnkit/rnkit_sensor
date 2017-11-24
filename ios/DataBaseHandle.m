@@ -7,12 +7,12 @@
 //
 
 #import "DataBaseHandle.h"
-#import <sqlite3.h>
+#import "FMDB.h"
 #import "DataBaseModel.h"
 
 static DataBaseHandle *handle = nil;
 
-static sqlite3 *db = nil;
+//static sqlite3 *db = nil;
 
 
 #ifdef DEBUG
@@ -24,105 +24,95 @@ static sqlite3 *db = nil;
 
 #define kDBpath @"rnkit-sensor.sqlite"
 
+@interface DataBaseHandle ()
+
+@property (nonatomic, strong) FMDatabaseQueue *queue;
+
+@end
+
+
 @implementation DataBaseHandle
 
 +(instancetype)shareDataBase {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         handle = [[DataBaseHandle alloc] init];
+        [handle createTable];
     });
     return handle;
 }
 
-#pragma mark 打开数据库
--(void)openDB {
-    if (db != nil) {
-        YXLog(@"数据库已经打开");
-        return;
-    }
-    
-    NSString *docPath = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0];
-    NSString *dbPath = [docPath stringByAppendingPathComponent:kDBpath];
-    YXLog(@"数据库路径:%@",dbPath);
-    
-    int result = sqlite3_open(dbPath.UTF8String, &db);
-    if (result == SQLITE_OK) {
-        YXLog(@"数据库打开成功");
-        if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"existTable"] intValue] == 0) {
-            [self createTable];
+#pragma mark - 建表
+- (void)createTable {
+    NSString *createTableSql = @"CREATE TABLE IF NOT EXISTS RNKitSensor (mid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL ,jsonBody TEXT,requestUrl VARCHAR(254),timeStamp BIGINT,times INTEGER,status INTEGER,priority INTEGER)";
+    [self.queue inDatabase:^(FMDatabase * _Nonnull db) {
+        BOOL result = [self executeUpdateWithSQLString:createTableSql db:db];
+        
+        if (result) {
+            YXLog(@"建表成功");
+        }else{
+            YXLog(@"建表失败");
         }
-    } else {
-        YXLog(@"数据库打开失败result=%d",result);
-    }
+        
+    }];
+    
 }
 
-
-#pragma mark 关闭数据库
--(void)closeDB {
-    int result = sqlite3_close(db);
-    if (result == SQLITE_OK) {
-        YXLog(@"数据库关闭成功");
-        db = nil;
-    } else {
-        YXLog(@"数据库关闭失败result=%d",result);
-    }
-
-}
-
-
-#pragma mark 建表
--(void)createTable {
-    
-    NSString *sqlStr = @"CREATE TABLE IF NOT EXISTS RNKitSensor (mid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL ,jsonBody TEXT,requestUrl VARCHAR(254),timeStamp BIGINT,times INTEGER,status INTEGER,priority INTEGER)";
-    
-    int result = sqlite3_exec(db, sqlStr.UTF8String, NULL, NULL, NULL);
-    
-    if (result == SQLITE_OK) {
-        YXLog(@"建表成功");
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        [defaults setObject:@(1) forKey:@"existTable"];
-        [defaults synchronize];
-    }else{
-        YXLog(@"建表失败result=%d",result);
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        [defaults setObject:@(0) forKey:@"existTable"];
-        [defaults synchronize];
-    }
-}
-
-
-#pragma mark 插入数据(增)
+#pragma mark - 插入数据
 -(void)insertModel:(DataBaseModel *)dbModel {
+     NSString *insertSql = [NSString stringWithFormat:@"INSERT INTO RNKitSensor (jsonBody,requestUrl,timeStamp,times,status,priority) VALUES ('%@','%@','%lu','%ld','%ld','%ld')",dbModel.jsonBody,dbModel.requestUrl,dbModel.timeStamp,dbModel.times,dbModel.status,dbModel.priority];
+    [self.queue inDatabase:^(FMDatabase * _Nonnull db) {
+        BOOL result = [self executeUpdateWithSQLString:insertSql db:db];
+        
+        if (result) {
+            YXLog(@"增加数据成功");
+        }else{
+            YXLog(@"增加数据失败");
+        }
+        
+    }];
     
-    NSString *insertSql = [NSString stringWithFormat:@"INSERT INTO RNKitSensor (jsonBody,requestUrl,timeStamp,times,status,priority) VALUES ('%@','%@','%lu','%ld','%ld','%ld')",dbModel.jsonBody,dbModel.requestUrl,dbModel.timeStamp,dbModel.times,dbModel.status,dbModel.priority];
     
-    int result = sqlite3_exec(db, insertSql.UTF8String, NULL, NULL, NULL);
-    if (result == SQLITE_OK) {
-        YXLog(@"添加成功");
-    }else{
-        YXLog(@"添加失败result=%d",result);
-    }
+    
 }
 
 
-#pragma mark  修改数据(改)
--(void)updateWithID:(NSInteger)mid status:(NSInteger)status times:(NSInteger)times {
+#pragma mark - 删除status=1并超过最大上传数的数据
+-(void)deleteWithStatus:(NSInteger)status repeatCount:(NSInteger)repeatCount {
     
-    NSString *updateSql = [NSString stringWithFormat:@"UPDATE RNKitSensor SET status = '%ld', times = '%ld' WHERE mid = '%ld'",status,times,mid];
+    NSString *deleteSql = [NSString stringWithFormat:@"DELETE FROM RNKitSensor WHERE status = '%ld' OR (times > '%ld' AND priority > 0)",status,repeatCount];
+    [self.queue inDatabase:^(FMDatabase * _Nonnull db) {
+        BOOL result = [self executeUpdateWithSQLString:deleteSql db:db];
+        
+        if (result) {
+            YXLog(@"删除数据成功");
+        }else{
+            YXLog(@"删除数据失败");
+        }
+    }];
     
-    int result = sqlite3_exec(db, updateSql.UTF8String, NULL, NULL, NULL);
     
-    if (result == SQLITE_OK) {
-        YXLog(@"修改成功");
-    }else{
-        YXLog(@"修改失败result=%d",result);
-    }
-
+    
+}
+#pragma mark - 删除status=1
+-(void)deleteWithStatus:(NSInteger)status {
+    NSString *deleteSql = [NSString stringWithFormat:@"DELETE FROM RNKitSensor WHERE status = '%ld'",status];
+    
+    [self.queue inDatabase:^(FMDatabase * _Nonnull db) {
+        BOOL result = [self executeUpdateWithSQLString:deleteSql db:db];
+        
+        if (result) {
+            YXLog(@"删除数据成功");
+        }else{
+            YXLog(@"删除数据失败");
+        }
+    }];
+    
 }
 
 #pragma mark - 批量更新
 - (void)batchUpdeate:(NSArray *)modelArray {
-
+    
     NSMutableString *str = [NSMutableString string];
     for (DataBaseModel *model in modelArray) {
         
@@ -130,140 +120,145 @@ static sqlite3 *db = nil;
     }
     //切记最后一个参数木有逗号
     str = ([str substringToIndex:str.length - 1]).mutableCopy;
-
+    
     NSString *updateSql = [NSString stringWithFormat:@"REPLACE INTO RNKitSensor (mid,jsonBody,requestUrl,timeStamp,times,status,priority) values %@",str];
     
-    int result = sqlite3_exec(db, updateSql.UTF8String, NULL, NULL, NULL);
-    if (result == SQLITE_OK) {
-        YXLog(@"修改成功");
-    }else{
-        YXLog(@"修改失败result=%d",result);
+    
+    [self.queue inDatabase:^(FMDatabase * _Nonnull db) {
+        BOOL result = [self executeUpdateWithSQLString:updateSql db:db];
+        
+        if (result) {
+            YXLog(@"批量更新成功");
+        }else{
+            YXLog(@"批量更新失败");
+        }
+        
+    }];
+    
+    
+    
+}
+
+
+
+#pragma mark - 更新语句
+- (BOOL)executeUpdateWithSQLString:(NSString *)sql db:(FMDatabase *)db
+{
+    if ([db open]) {
+        [db beginTransaction];
+        @try {
+            BOOL result = [db executeUpdate:sql];
+            [db commit];
+            [db close];
+            return result;
+        } @catch (NSException *exception) {
+            YXLog(@"错误===%@",exception.description);
+            [db commit];
+            [db close];
+            return NO;
+        } @finally {
+            YXLog(@"finally");
+        }
+    }else {
+        if([db hadError])
+        {
+            YXLog(@"Error %d : %@",[db lastErrorCode],[db lastErrorMessage]);
+        }
+        YXLog(@"数据库打开失败");
+        return NO;
     }
-
-    
 }
 
-#pragma mark 删除数据(删)
--(void)deleteWithStatus:(NSInteger)status repeatCount:(NSInteger)repeatCount {
-    
-    NSString *deleteSql = [NSString stringWithFormat:@"DELETE FROM RNKitSensor WHERE status = '%ld' OR (times > '%ld' AND priority > 0)",status,repeatCount];
-    
-    int result = sqlite3_exec(db, deleteSql.UTF8String, NULL, NULL, NULL);
-    
-    if (result == SQLITE_OK) {
-        YXLog(@"删除成功");
-    }else{
-        YXLog(@"删除失败result=%d",result);
-    }
-
-}
-
-#pragma mark - 状态为1(成功)删除
--(void)deleteWithStatus:(NSInteger)status {
-    NSString *deleteSql = [NSString stringWithFormat:@"DELETE FROM RNKitSensor WHERE status = '%ld'",status];
-    
-    int result = sqlite3_exec(db, deleteSql.UTF8String, NULL, NULL, NULL);
-    
-    if (result == SQLITE_OK) {
-        YXLog(@"删除成功");
-    }else{
-        YXLog(@"删除失败result=%d",result);
-    }
-}
-
-
-#pragma mark  全查
--(NSArray *)selectAll {
-    
-    NSString *selectSql = @"SELECT * FROM RNKitSensor";
-    
-    return [self selectResults:selectSql];
-    
-    
-}
-
-
-#pragma mark 条件查
+#pragma mark - 限制条数的查询
 -(NSArray *)selectWithLimit:(NSInteger)limit {
-    
     NSInteger limitNum = limit ? limit : 30;
     
     NSString *selectSql = [NSString stringWithFormat:@"SELECT * FROM RNKitSensor WHERE status = 0 OR status = 2 ORDER BY priority LIMIT %ld",(long)limitNum];
+    __block NSArray *backArr;
+    [self.queue inDatabase:^(FMDatabase * _Nonnull db) {
+        NSArray *resultArr = (NSArray *)[self executeSelectSQLWithSQLString:selectSql db:db];
+        backArr = resultArr != nil && resultArr.count > 0 ? resultArr : @[];
+    }];
     
-    return [self selectResults:selectSql];
-    
+    return backArr;
 }
 
-#pragma mark - 查询达到最大失败次数
+#pragma mark 查询超过最大上传次数的数据
 -(NSArray *)selectWithRepeatCount:(NSInteger)repeatCount {
     
     NSString *selectSql = [NSString stringWithFormat:@"SELECT * FROM RNKitSensor WHERE times > '%ld' AND priority > 0 ORDER BY priority",repeatCount];
-    
-    return [self selectResults:selectSql];
+    __block NSArray *backArr;
+    [self.queue inDatabase:^(FMDatabase * _Nonnull db) {
+        NSArray *resultArr = (NSArray *)[self executeSelectSQLWithSQLString:selectSql db:db];
+        backArr = resultArr != nil && resultArr.count > 0 ? resultArr : @[];
+    }];
+
+    return backArr;
 }
 
-
-
-
-- (NSArray *)selectResults:(NSString *)selectSql{
-    
+#pragma mark -查询数据
+- (NSMutableArray *)executeSelectSQLWithSQLString:(NSString *)sql db:(FMDatabase *)db
+{
     NSMutableArray *modelArray = nil;
     
-    sqlite3_stmt *stmt = nil;
-    
-    int result = sqlite3_prepare_v2(db, selectSql.UTF8String, -1, &stmt, NULL);
-    
-    if (result == SQLITE_OK) {
-        modelArray = [NSMutableArray array];
-        
-        while (sqlite3_step(stmt) == SQLITE_ROW) {
-            NSInteger mid = sqlite3_column_int(stmt, 0);
-            NSString *jsonBody = [NSString stringWithUTF8String:(const char *) sqlite3_column_text(stmt, 1)];
-            NSString *requestUrl = [NSString stringWithUTF8String:(const char *) sqlite3_column_text(stmt, 2)];
-            NSUInteger timeStamp = sqlite3_column_double(stmt, 3);
-            NSInteger times = sqlite3_column_int(stmt, 4);
-            NSInteger status = sqlite3_column_int(stmt, 5);
-            NSInteger priority = sqlite3_column_int(stmt, 6);
+    if ([db open]) {
+        [db beginTransaction];
+        @try {
+            FMResultSet *result = [db executeQuery:sql];
+            modelArray = [NSMutableArray array];
+            while ([result next]) {
+                NSInteger mid = [result intForColumn:@"mid"];
+                NSString *jsonBody = [result stringForColumn:@"jsonBody"];
+                NSString *requestUrl = [result stringForColumn:@"requestUrl"];
+                NSUInteger timeStamp = [result doubleForColumn:@"timeStamp"];
+                NSInteger times = [result intForColumn:@"times"];
+                NSInteger status = [result intForColumn:@"status"];
+                NSInteger priority = [result intForColumn:@"priority"];
+                
+                DataBaseModel *model = [DataBaseModel new];
+                model.mid = mid;
+                model.jsonBody = jsonBody;
+                model.requestUrl = requestUrl;
+                model.timeStamp = timeStamp;
+                model.times = times;
+                model.status = status;
+                model.priority = priority;
+                
+                [modelArray addObject:model];
+            }
             
-            DataBaseModel *model = [DataBaseModel new];
-            model.mid = mid;
-            model.jsonBody = jsonBody;
-            model.requestUrl = requestUrl;
-            model.timeStamp = timeStamp;
-            model.times = times;
-            model.status = status;
-            model.priority = priority;
-            
-            [modelArray addObject:model];
-            
+            [db commit];
+            [db close];
+            return modelArray;
+        } @catch (NSException *exception) {
+            YXLog(@"错误===%@",exception.description);
+            [db commit];
+            [db close];
+            return modelArray;
+        } @finally {
+            YXLog(@"finally");
         }
-        YXLog(@"查询成功");
-    } else{
-        YXLog(@"查询失败result=%d",result);
-    }
-    
-    sqlite3_finalize(stmt);
-    
-    for (DataBaseModel *model in modelArray) {
-        YXLog(@"mid:%ld,jsonBody:%@,requestUrl:%@,timeStamp:%lu,times:%ld,status:%ld,priority:%ld",model.mid,model.jsonBody,model.requestUrl,model.timeStamp,model.times,model.status,model.priority);
-    }
-    
-    return modelArray;
-
-}
-
-#pragma mark - 重置id
--(void)resetId {
-    
-    NSString *resetSql = @"TRUNCATE TABLE RNKitSensor";
-    
-    int result = sqlite3_exec(db, resetSql.UTF8String, NULL, NULL, NULL);
-    YXLog(@"result值:%d",result);
-    if (result == SQLITE_OK) {
-        YXLog(@"重制id成功");
-    }else{
-        YXLog(@"重置id失败result=%d",result);
+    }else {
+        if([db hadError])
+        {
+            YXLog(@"Error %d : %@",[db lastErrorCode],[db lastErrorMessage]);
+        }
+        YXLog(@"数据库打开失败");
+        
+        return modelArray;
     }
 }
+
+#pragma mark - 懒加载
+- (FMDatabaseQueue *)queue {
+    if (!_queue) {
+        NSString *docPath = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0];
+        NSString *dbPath = [docPath stringByAppendingPathComponent:kDBpath];
+        YXLog(@"数据库路径:%@",dbPath);
+        _queue = [FMDatabaseQueue databaseQueueWithPath:dbPath];
+    }
+    return _queue;
+}
+
 
 @end
