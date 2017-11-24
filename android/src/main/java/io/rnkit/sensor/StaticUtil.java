@@ -6,6 +6,9 @@ import android.net.NetworkInfo;
 import android.telephony.TelephonyManager;
 import android.util.Base64;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -51,6 +54,8 @@ class StaticUtil {
     static int REPEAT_TIMES = 3;
 
     static String deviceId = "";
+
+    static final String logEvent = "evnt_ckapp_log_collect";
 
     static final String KEY_FAIL_TIMES = "failTimes";
 
@@ -239,4 +244,40 @@ class StaticUtil {
                 throws CertificateException {
         }
     };
+
+    /**
+     * 返回日志事件的字符串
+     */
+    public static String addLog(String eventString, String log) {
+        try {
+            JSONObject jsonObject = new JSONObject(eventString);
+            String eventType = jsonObject.optString("event_type");
+            long eventTime = jsonObject.optLong("seq_tns");
+            String eventPhone = jsonObject.optJSONObject("fields").optString("phone_no");
+            JSONObject logJSON = new JSONObject();
+            logJSON.put("event_type", logEvent);
+            logJSON.put("seq_tns", System.currentTimeMillis());
+            JSONObject logContent = new JSONObject();
+            logContent.put("phone_no", eventPhone);
+            logContent.put("eventType", eventType);
+            logContent.put("eventTime", eventTime);
+            logContent.put("log", log + "--" + eventType  + "--" + eventTime + "--" + eventPhone);
+            logJSON.put("fields", logContent);
+            return logJSON.toString();
+        } catch (JSONException ignored) {
+        }
+        return null;
+    }
+
+    /**
+     * @return 返回事件的名称
+     */
+    public static String getEventType(String eventString) {
+        try {
+            JSONObject jsonObject = new JSONObject(eventString);
+            return jsonObject.optString("event_type");
+        } catch (JSONException ignored) {
+        }
+        return null;
+    }
 }

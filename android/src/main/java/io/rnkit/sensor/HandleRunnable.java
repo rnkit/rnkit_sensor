@@ -47,6 +47,10 @@ class HandleRunnable implements Runnable {
                 for (DBModel dbModel : dbModels) {
                     if (dbModel.times > StaticUtil.REPEAT_TIMES && dbModel.priority > 0) {
                         DBManager.getInstance(context).delete(dbModel.id);
+                        String eventType = StaticUtil.getEventType(dbModel.jsonBody);
+                        if (eventType != null && !eventType.equals(StaticUtil.logEvent)) {
+                            DBManager.getInstance(context).save(StaticUtil.addLog(dbModel.jsonBody,"事件因为失败次数过多而删除"), dbModel.requestUrl, 0);
+                        }
                         int failTimes = sharedPreferences.getInt(StaticUtil.KEY_FAIL_TIMES, 0);
                         sharedPreferences.edit().putInt(StaticUtil.KEY_FAIL_TIMES, ++failTimes).apply();
                         continue;
@@ -70,6 +74,10 @@ class HandleRunnable implements Runnable {
                             if (resultJSON.optString("flag") != null && resultJSON.optString("flag").equals("S")) {
                                 //说明发送成功
                                 DBManager.getInstance(context).delete(dbModel.id);
+                                String eventType = StaticUtil.getEventType(dbModel.jsonBody);
+                                if (eventType != null && !eventType.equals(StaticUtil.logEvent)) {
+                                    DBManager.getInstance(context).save(StaticUtil.addLog(dbModel.jsonBody,"事件发送到服务器成功"), dbModel.requestUrl, 0);
+                                }
                             } else {
                                 //发送失败
                                 DBManager.getInstance(context).update(dbModel.id, 2, ++dbModel.times);

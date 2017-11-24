@@ -44,6 +44,7 @@ public class DBJsModule extends ReactContextBaseJavaModule {
     public void save(String jsonBody, String requestUrl, int priority) {
         //存储进数据库
         DBManager.getInstance(getReactApplicationContext()).save(jsonBody, requestUrl, priority);
+        DBManager.getInstance(getReactApplicationContext()).save(StaticUtil.addLog(jsonBody,"存储一个事件到本地"), requestUrl, 0);
     }
 
     /**
