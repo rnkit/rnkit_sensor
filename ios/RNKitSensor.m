@@ -53,6 +53,8 @@ RCT_EXPORT_METHOD(initial:(NSString *)appkey maxVolume:(NSInteger)maxVolume repe
 RCT_EXPORT_METHOD(save:(NSString *)jsonBody requestUrl:(NSString *)requestUrl priorityLevel:(NSInteger)level)
 {
     [self.utils insertToDB:jsonBody requestUrl:requestUrl priorityLevel:level];
+    [self.utils addLog:jsonBody reason:@"存储一个事件到本地" requestUrl:requestUrl];
+    
     RCTLogInfo(@"存值成功");
 }
 
