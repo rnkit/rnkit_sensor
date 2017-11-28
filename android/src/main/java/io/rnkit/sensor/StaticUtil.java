@@ -47,6 +47,10 @@ class StaticUtil {
      */
     static int MAX_VOLUME = 20;
     /**
+     * 是否打印日志
+     */
+    static boolean isSensorLog = false;
+    /**
      * 服务器分配的appKey
      */
     static String appKey = "";

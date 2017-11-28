@@ -44,7 +44,8 @@ public class DBJsModule extends ReactContextBaseJavaModule {
     public void save(String jsonBody, String requestUrl, int priority) {
         //存储进数据库
         DBManager.getInstance(getReactApplicationContext()).save(jsonBody, requestUrl, priority);
-        DBManager.getInstance(getReactApplicationContext()).save(StaticUtil.addLog(jsonBody,"存储一个事件到本地"), requestUrl, 0);
+        if (StaticUtil.isSensorLog)
+            DBManager.getInstance(getReactApplicationContext()).save(StaticUtil.addLog(jsonBody, "存储一个事件到本地"), requestUrl, 0);
     }
 
     /**
@@ -64,14 +65,16 @@ public class DBJsModule extends ReactContextBaseJavaModule {
      * @param repeatTimes 最大尝试次数
      */
     @ReactMethod
-    public void initial(String appKey, int maxVolume, int repeatTimes) {
+    public void initial(String appKey, int maxVolume, int repeatTimes, boolean isSensorLog) {
         StaticUtil.appKey = appKey;
         StaticUtil.MAX_VOLUME = maxVolume;
         StaticUtil.REPEAT_TIMES = repeatTimes;
+        StaticUtil.isSensorLog = isSensorLog;
         StaticUtil.deviceId = StaticUtil.getDeviceId(getReactApplicationContext());
         if (StaticUtil.deviceId == null)
             StaticUtil.deviceId = "";
     }
+
 
     @Override
     public boolean canOverrideExistingModule() {
