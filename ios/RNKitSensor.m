@@ -35,9 +35,9 @@ RCT_EXPORT_MODULE();
  * @param maxVolume   一次最大上传的埋点条数
  * @param repeatTimes 最大尝试次数
  */
-RCT_EXPORT_METHOD(initial:(NSString *)appkey maxVolume:(NSInteger)maxVolume repeatTimes:(NSInteger)repeatTimes)
+RCT_EXPORT_METHOD(initial:(NSString *)appkey maxVolume:(NSInteger)maxVolume repeatTimes:(NSInteger)repeatTimes canLog:(BOOL)canLog)
 {
-    [self.utils initial:appkey maxVolume:maxVolume repeatTimes:repeatTimes];
+    [self.utils initial:appkey maxVolume:maxVolume repeatTimes:repeatTimes canLog:canLog];
     RCTLogInfo(@"初始化");
 }
 

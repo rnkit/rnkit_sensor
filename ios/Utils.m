@@ -24,6 +24,8 @@ static NSInteger maxVolumeNum = 0;
 
 static NSString *appkeyStr;
 
+static BOOL isCanLog;   //是否上传日志
+
 static NSInteger repeatCount = 3;
 
 static NSString *logEvent = @"evnt_ckapp_log_collect";
@@ -49,10 +51,11 @@ static NSString *logEvent = @"evnt_ckapp_log_collect";
 
 
 
-- (void)initial:(NSString *)appkey maxVolume:(NSInteger)maxVolume repeatTimes:(NSInteger)repeatTimes {
+- (void)initial:(NSString *)appkey maxVolume:(NSInteger)maxVolume repeatTimes:(NSInteger)repeatTimes canLog:(BOOL)canLog {
     maxVolumeNum = maxVolume;
     appkeyStr = appkey;
     repeatCount = repeatTimes;
+    isCanLog = canLog;
 }
 
 
@@ -105,9 +108,10 @@ static NSString *logEvent = @"evnt_ckapp_log_collect";
                 int failCount = (int)failArr.count;
                 
                 if (failCount > 0) {
-                    
-                    for (DataBaseModel *model in failArr) {
-                        [strongSelf addLog:model.jsonBody reason:@"事件因为失败次数过多而删除" requestUrl:model.requestUrl];
+                    if (isCanLog) {
+                        for (DataBaseModel *model in failArr) {
+                            [strongSelf addLog:model.jsonBody reason:@"事件因为失败次数过多而删除" requestUrl:model.requestUrl];
+                        }
                     }
                     
                     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -331,35 +335,36 @@ static NSString *logEvent = @"evnt_ckapp_log_collect";
 
 - (void)addLog:(NSString *)jsonBody reason:(NSString *)reason requestUrl:(NSString *)requestUrl {
     @try {
-        
-         NSDictionary *event = [self toArrayOrNSDictionaryFromData:[jsonBody dataUsingEncoding:NSUTF8StringEncoding]];
-        NSString *eventType = event[@"event_type"];
-        
-        if (![self isNullString:eventType] || [logEvent isEqualToString:eventType]) {
-            return;
+        if (isCanLog) {
+            NSDictionary *event = [self toArrayOrNSDictionaryFromData:[jsonBody dataUsingEncoding:NSUTF8StringEncoding]];
+            NSString *eventType = event[@"event_type"];
+            
+            if (![self isNullString:eventType] || [logEvent isEqualToString:eventType]) {
+                return;
+            }
+            NSDate *now = [NSDate date];
+            NSUInteger timeStamp = (NSUInteger)(([now timeIntervalSince1970]) * 1000);
+            
+            NSString *eventPhone = event[@"fields"][@"phone_no"];
+            
+            NSString *eventTime = [NSString stringWithFormat:@"%@",event[@"seq_tns"]];
+            NSString *logStr = [NSString stringWithFormat:@"%@--%@--%@--%@",reason,eventType,eventTime,eventPhone];
+            
+            NSDictionary *fields = @{@"phone_no": eventPhone,
+                                     @"eventType": eventType,
+                                     @"eventTime": eventTime,
+                                     @"log":logStr
+                                     };
+            
+            
+            NSDictionary *log = @{@"event_type": logEvent,
+                                  @"seq_tns": @(timeStamp),
+                                  @"fields": fields
+                                  };
+            
+            
+            [self insertToDB:[self toJsonStringFromParam:log] requestUrl:requestUrl priorityLevel:0];
         }
-        NSDate *now = [NSDate date];
-        NSUInteger timeStamp = (NSUInteger)(([now timeIntervalSince1970]) * 1000);
-       
-        NSString *eventPhone = event[@"fields"][@"phone_no"];
-        
-        NSString *eventTime = [NSString stringWithFormat:@"%@",event[@"seq_tns"]];
-        NSString *logStr = [NSString stringWithFormat:@"%@--%@--%@--%@",reason,eventType,eventTime,eventPhone];
-        
-        NSDictionary *fields = @{@"phone_no": eventPhone,
-                                 @"eventType": eventType,
-                                 @"eventTime": eventTime,
-                                 @"log":logStr
-                                 };
-        
-        
-        NSDictionary *log = @{@"event_type": logEvent,
-                                   @"seq_tns": @(timeStamp),
-                                   @"fields": fields
-                                   };
-        
-        
-        [self insertToDB:[self toJsonStringFromParam:log] requestUrl:requestUrl priorityLevel:0];
         
     } @catch (NSException *exception) {
         NSLog(@"错误===%@",exception.description);

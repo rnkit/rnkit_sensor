@@ -11,10 +11,12 @@
 
 @interface Utils : NSObject
 
-- (void)initial:(NSString *)appkey maxVolume:(NSInteger)maxVolume repeatTimes:(NSInteger)repeatTimes;
+- (void)initial:(NSString *)appkey maxVolume:(NSInteger)maxVolume repeatTimes:(NSInteger)repeatTimes canLog:(BOOL)canLog;
 
 - (void)insertToDB:(NSString *)jsonBody requestUrl:(NSString *)requestUrl priorityLevel:(NSInteger)level;
 
 - (void)upload;
+
+- (void)addLog:(NSString *)jsonBody reason:(NSString *)reason requestUrl:(NSString *)requestUrl;
 
 @end
