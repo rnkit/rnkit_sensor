@@ -227,8 +227,12 @@ class StaticUtil {
     }
 
     static String getDeviceId(Context context) {
+        String deviceId = "";
+        try{
         TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        return tm.getDeviceId();
+        deviceId = tm.getDeviceId();
+        }catch(Exception e){}
+        return deviceId;
     }
 
     private static TrustManager myX509TrustManager = new X509TrustManager() {
